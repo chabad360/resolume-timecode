@@ -1,174 +1,122 @@
 package main
 
+//go:generate env GOOS=js GOARCH=wasm go build -o=main.wasm wasm/calculation.go wasm/main.go
+
 import (
+	"context"
+	"embed"
 	"fmt"
+	"github.com/hypebeast/go-osc/osc"
+	"log"
 	"net"
+	"net/http"
 	"os"
-	"strconv"
-	"strings"
+
 	"time"
 
-	"github.com/hypebeast/go-osc/osc"
+	"github.com/SierraSoftworks/multicast"
+	"github.com/go-playground/pure/v5"
+	mw "github.com/go-playground/pure/v5/_examples/middleware/logging-recovery"
+	"nhooyr.io/websocket"
+)
+
+var (
+	broadcast     = multicast.New()
+	addr          = ":7001"
+	listenOSCPort = 7000
+	listenOSCAddr = "localhost"
+	listenAddr    = ":80"
+
+	//go:embed index.html
+	//go:embed main.wasm
+	fs embed.FS
 )
 
 func main() {
-	timePrev = time.Now()
-	addr := ":7001"
-	client := osc.NewClient("192.168.254.165", 7000)
-	server := &osc.Server{}
+	client := osc.NewClient(listenOSCAddr, listenOSCPort)
+
 	conn, err := net.ListenPacket("udp", addr)
 	if err != nil {
 		fmt.Println("Couldn't listen: ", err)
 	}
 	defer conn.Close()
 
-	d := osc.NewStandardDispatcher()
-	d.AddMsgHandler("/composition/selectedclip/transport/position", procMsg)
-	d.AddMsgHandler("/composition/selectedclip/name", clipName)
+	go listenOSC(conn)
 
-	ticker2 := time.NewTicker(time.Second)
+	t := time.NewTicker(time.Second)
+	defer t.Stop()
 
+	message := osc.NewMessage("/composition/selectedclip/name")
+	message.Append("?")
 	go func() {
-		fmt.Println("Start listening on", addr)
-		//fmt.Println("pos,average,time,timeAverage,timeActual,timeTotal,timeLeft,timeNow")
 		for {
-			packet, err := server.ReceivePacket(conn)
-			timeNow = time.Now()
-			if err != nil {
-				fmt.Println("Server error: " + err.Error())
-				os.Exit(1)
-			}
-
-			d.Dispatch(packet)
-		}
-	}()
-
-	go func() {
-		message := osc.NewMessage("/composition/selectedclip/name")
-		message.Append("?")
-		for {
-			<-ticker2.C
+			<-t.C
 			client.Send(message)
 		}
 	}()
 
+	p := pure.New()
+	p.Use(mw.LoggingAndRecovery(true))
+
+	p.Get("/ws", websocketStart)
+	//p.Get("/config", config)
+	p.Get("/", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
+	p.Get("/main.wasm", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
+
+	log.Fatal(http.ListenAndServe(listenAddr, p.Serve()))
+}
+
+func listenOSC(conn net.PacketConn) {
+	server := &osc.Server{}
 	for {
-	}
-}
+		packet, err := server.ReceivePacket(conn)
+		if err != nil {
+			fmt.Println("Server error: " + err.Error())
+			os.Exit(1)
+		}
 
-var (
-	posPrev    float32
-	timePrev   time.Time
-	timeNow    time.Time
-	tPrev      int
-	samples    int
-	timeLeft   string
-	interval   float32
-	duration   float32 = 10000
-	div        float32 = 1000
-	array              = []float32{0}
-	timeArray          = []float32{0}
-	totalArray         = []float32{0}
-	name       string
-)
+		if packet != nil {
+			switch packet.(type) {
+			default:
+				fmt.Println("Unknown packet type!")
 
-func Pop(array []float32) (values []float32, value float32) {
-	value, values = array[0], array[1:]
-	return
-}
+			case *osc.Message:
+				broadcast.C <- packet.(*osc.Message).String()
 
-func maxAppend(array []float32, value float32, limit int) []float32 {
-	array = append(array, value)
-	if len(array) > limit {
-		array, _ = Pop(array)
-	}
-	return array
-}
-
-func average(array []float32) float32 {
-	var f float32
-	for i := 0; i < len(array); i++ {
-		f = f + array[i]
-	}
-	return f / float32(len(array))
-}
-
-func within(original float32, new float32, percent float32) bool {
-	p := original / 100 * percent
-	if (new > original+p || new < original-p) && original != 0 {
-		return false
-	}
-	return true
-}
-
-func clipName(msg *osc.Message) {
-	nameString := strings.TrimPrefix(msg.String(), "/composition/selectedclip/name ,s ")
-	if name != nameString {
-		name = nameString
-		reset()
-	}
-}
-
-func reset() {
-	samples = 0
-	totalArray = []float32{0}
-	timeArray = []float32{0}
-	array = []float32{0}
-}
-
-func procMsg(msg *osc.Message) {
-	var t int
-	var timeActual time.Duration
-	var tA float32
-	var td float32
-	posString := strings.TrimPrefix(msg.String(), "/composition/selectedclip/transport/position ,f ")
-	pos64, _ := strconv.ParseFloat(posString, 32)
-	pos := float32(pos64)
-	if pos < 0.000005 {
-		reset()
-	}
-
-	a := average(array)
-	ta := average(timeArray)
-	i := pos - posPrev
-	d := float32(timeNow.Sub(timePrev).Microseconds())
-	if i == 0 || d == 0 {
-		goto done
-	}
-	if !within(ta, d, 50) && samples > 500 {
-		//fmt.Printf("w")
-	} else {
-		timeArray = maxAppend(timeArray, d, 100)
-		array = maxAppend(array, i, 100)
-		interval = average(array)
-		duration = average(timeArray) / div
-
-		td = duration * (1 / interval)
-		tA = average(totalArray)
-		if within(tA, td, 0.001) && samples > 1000 && samples < 2000 {
-			totalArray = maxAppend(totalArray, td, 500)
-		} else if within(tA, td, 1) && samples > 500 {
-			totalArray = maxAppend(totalArray, td, 250)
-		} else if samples < 500 {
-			totalArray = maxAppend(totalArray, td, 100)
+			case *osc.Bundle:
+				bundle := packet.(*osc.Bundle)
+				for _, message := range bundle.Messages {
+					broadcast.C <- message.String()
+				}
+			}
 		}
 	}
-	samples++
+}
 
-	//t = (duration/div)*((1-pos)/interval)
-	//t = (duration/div)*((1-pos)/(interval/samples))
-	//t = int((duration)*((1-pos)/interval))
-	t = int((average(totalArray) / 1) * (1 - pos))
-	//t = int(100000/1)*(1-pos))
+func websocketStart(w http.ResponseWriter, r *http.Request) {
+	c, err := websocket.Accept(w, r, nil)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer c.Close(websocket.StatusInternalError, "the sky is falling")
 
-	posPrev = pos
-	timePrev = timeNow
-	timeActual, _ = time.ParseDuration(fmt.Sprintf("%dms", int(t)))
-	timeLeft = fmt.Sprintf("-%02d:%02d:%02d.%03d", int(timeActual.Hours()),
-		int(timeActual.Minutes())-(60*int(timeActual.Hours())),
-		int(timeActual.Seconds())-(60*int(timeActual.Minutes())),
-		int(timeActual.Milliseconds()-(1000*int64(timeActual.Seconds()))))
-	fmt.Printf("pos: %f\taverage: %f\ti: %f\ttime: %f\ttimeAverage: %f\ttimeActual: %d\ttimeTotal: %d\ttimeLeft: %s\n", pos, a, interval, d, ta, t, int(average(totalArray)), timeLeft)
-	//fmt.Printf("%f,%f,%f,%f,%f,%d,%d,%d\n", pos, a, interval, d, ta, t, int(average(totalArray)),timeNow.UnixNano())
-done:
+	ctx := c.CloseRead(context.Background())
+
+	l := broadcast.Listen()
+
+	for {
+		select {
+		case <-ctx.Done():
+			c.Close(websocket.StatusNormalClosure, "")
+			return
+		case m := <-l.C:
+			msg := m.(string)
+			err = c.Write(ctx, websocket.MessageText, []byte(msg))
+			if err != nil {
+				log.Println(err)
+				return
+			}
+		}
+	}
 }
