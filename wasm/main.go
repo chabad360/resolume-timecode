@@ -1,12 +1,11 @@
 package main
 
 import (
-	//"fmt"
-	. "github.com/siongui/godom/wasm"
+	"syscall/js"
 )
 
 func main() {
-	testdiv := Document.QuerySelector("#testdiv")
+	testdiv := js.Global().Get("document").Call("getElementById", "testdiv")
 	testdiv.Set("innerHTML", "-00:00:00.000")
 	addr := "localhost"
 

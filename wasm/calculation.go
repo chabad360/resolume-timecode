@@ -3,16 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/siongui/godom/wasm"
 	"log"
 	"nhooyr.io/websocket"
 	"os"
 	"strconv"
 	"strings"
+	"syscall/js"
 	"time"
 )
 
-func startOSC(div *wasm.Value, addr string) {
+func startOSC(div *js.Value, addr string) {
 	timePrev = time.Now()
 
 	ctx := context.Background()
@@ -102,7 +102,7 @@ func reset() {
 	array = []float32{0}
 }
 
-func procMsg(testdiv *wasm.Value) func(string) {
+func procMsg(testdiv *js.Value) func(string) {
 	return func(msg string) {
 		var t int
 		var timeActual time.Duration
