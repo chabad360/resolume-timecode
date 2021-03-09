@@ -88,14 +88,14 @@ function procPos(msg, timeNow) {
         posInterval  = average(posIntervalBuffer);
         timeInterval = average(timeIntervalBuffer);
 
-        let td = Math.trunc(timeInterval * (1 / posInterval));
-        let tA = average(estSizeBuffer);
-        if (within(tA, td, 0.001) && samples > 1000 && samples < 2000) {
-            estSizeBuffer = maxAppend(estSizeBuffer, td, 500);
-        } else if (within(tA, td, 1) && samples > 500) {
-            estSizeBuffer = maxAppend(estSizeBuffer, td, 250);
+        let currentEstSize = Math.trunc(timeInterval * (1 / posInterval));
+        let prevEstSize = average(estSizeBuffer);
+        if (samples > 1000 && samples < 2000 && within(prevEstSize, currentEstSize, 0.001)) {
+            estSizeBuffer = maxAppend(estSizeBuffer, currentEstSize, 500);
+        } else if (samples > 500 && within(prevEstSize, currentEstSize, 1)) {
+            estSizeBuffer = maxAppend(estSizeBuffer, currentEstSize, 250);
         } else if (samples < 500) {
-            estSizeBuffer = maxAppend(estSizeBuffer, td, 100);
+            estSizeBuffer = maxAppend(estSizeBuffer, currentEstSize, 100);
         }
     }
 
