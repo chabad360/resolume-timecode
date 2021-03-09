@@ -1,6 +1,6 @@
 package main
 
-//go:generate env GOOS=js GOARCH=wasm go build -o=main.wasm wasm/calculation.go wasm/main.go
+//go:generate env GOOS=js GOARCH=wasm go build -o=main.wasm wasm/main.go
 
 import (
 	"context"
@@ -10,8 +10,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
-
 	"time"
 
 	"github.com/SierraSoftworks/multicast"
@@ -24,11 +22,12 @@ var (
 	broadcast     = multicast.New()
 	addr          = ":7001"
 	listenOSCPort = 7000
-	listenOSCAddr = "localhost"
+	listenOSCAddr = "192.168.254.165"
 	listenAddr    = ":80"
 
 	//go:embed index.html
 	//go:embed main.wasm
+	//go:embed main.js
 	fs embed.FS
 )
 
@@ -62,6 +61,8 @@ func main() {
 	//p.Get("/config", config)
 	p.Get("/", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
 	p.Get("/main.wasm", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
+	p.Get("/main.js", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
+	p.Get("/main.js.map", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
 
 	log.Fatal(http.ListenAndServe(listenAddr, p.Serve()))
 }
@@ -72,7 +73,6 @@ func listenOSC(conn net.PacketConn) {
 		packet, err := server.ReceivePacket(conn)
 		if err != nil {
 			fmt.Println("Server error: " + err.Error())
-			os.Exit(1)
 		}
 
 		if packet != nil {
@@ -112,6 +112,7 @@ func websocketStart(w http.ResponseWriter, r *http.Request) {
 			return
 		case m := <-l.C:
 			msg := m.(string)
+			fmt.Println(msg)
 			err = c.Write(ctx, websocket.MessageText, []byte(msg))
 			if err != nil {
 				log.Println(err)
