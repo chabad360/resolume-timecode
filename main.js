@@ -2,6 +2,7 @@
 
 const socket = new WebSocket('ws://localhost/ws');
 const timecode = document.getElementById("timecode")
+const mult = 1000000000
 
 var clipName = ""
 var posPrev = 0
@@ -29,7 +30,7 @@ function average(array){
     for (let i = 0; i < array.length; i++) {
         f = f + array[i]
     }
-    return parseFloat((f / array.length).toPrecision(8))
+    return Math.trunc(f / array.length)
 }
 
 function within(original, newNum, percent) {
@@ -65,21 +66,15 @@ function reset() {
 }
 
 function procPos(msg) {
-    var t
-    var timeActual
-    var tA
-    var td
-    var timeLeft
-    var posString = msg.replace("/composition/selectedclip/transport/position ,f ", "")
-    var pos = parseFloat(posString)
-    if (pos < 0.000005) {
+    let pos = parseFloat(msg.replace("/composition/selectedclip/transport/position ,f ", "")) * mult
+    if (pos < 5) {
         reset()
     }
 
     let a = average(posArray)
     let ta = average(timeArray)
-    let i = parseFloat((pos - posPrev).toPrecision(8))
-    let d = timeNow - timePrev
+    let i = pos - posPrev
+    let d = (timeNow - timePrev) * mult
     if (i === 0 || d === 0) {
         return
     }
@@ -91,8 +86,8 @@ function procPos(msg) {
         interval = average(posArray)
         duration = average(timeArray)
 
-        td = parseFloat((duration * (1 / interval)).toPrecision(8))
-        tA = average(totalArray)
+        let td = duration * (1 / interval)
+        let tA = average(totalArray)
         if (within(tA, td, 0.001) && samples > 1000 && samples < 2000) {
             totalArray = maxAppend(totalArray, td, 500)
         } else if (within(tA, td, 1) && samples > 500) {
@@ -103,16 +98,13 @@ function procPos(msg) {
     }
     samples++
 
-    //t = (duration/div)*((1-pos)/interval)
-    //t = (duration/div)*((1-pos)/(interval/samples))
     //t = int((duration)*((1-pos)/interval))
-    t = parseFloat(((average(totalArray)) * (1 - pos)).toFixed(0))
-    //t = int(100000/1)*(1-pos))
+    let t = ((average(totalArray)) * (mult - pos)) / mult
 
     posPrev = pos
     timePrev = timeNow
-    timeActual = new Date(t)
-    timeLeft = `-${timeActual.getHours()}:${timeActual.getMinutes()}:${timeActual.getSeconds()}.${timeActual.getMilliseconds()}`
+    let timeActual = new Date(t)
+    let timeLeft = `-${timeActual.getUTCHours().toString().padStart(3, '0')}:${timeActual.getUTCMinutes().toString().padStart(2, '0')}:${timeActual.getUTCSeconds().toString().padStart(2, '0')}.${timeActual.getUTCMilliseconds().toString().padStart(3, '0')}`
     timecode.innerHTML = timeLeft
     // console.log(`pos: ${pos}\taverage: ${a}\ti: ${interval}\ttime: ${d}\ttimeAverage: ${ta}\ttimeActual: ${t}\ttimeTotal: ${average(totalArray)}\ttimeLeft: ${timeLeft}`)
     //fmt.Printf("%f,%f,%f,%f,%f,%d,%d,%d\n", pos, a, interval, d, ta, t, int(average(totalArray)),timeNow.UnixNano())
