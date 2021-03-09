@@ -82,8 +82,8 @@ function procPos(msg, timeNow) {
     if (!within(prevTimeInterval, currentTimeInterval, 50) && samples > 500) {
         //console.log("w");
     } else {
-        posIntervalBuffer    = maxAppend(posIntervalBuffer, i, 100);
-        timeIntervalBuffer   = maxAppend(timeIntervalBuffer, d, 100);
+        posIntervalBuffer    = maxAppend(posIntervalBuffer, currentPosInterval, 100);
+        timeIntervalBuffer   = maxAppend(timeIntervalBuffer, currentTimeInterval, 100);
 
         posInterval  = average(posIntervalBuffer);
         timeInterval = average(timeIntervalBuffer);
