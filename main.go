@@ -1,15 +1,16 @@
 package main
 
-//go:generate env GOOS=js GOARCH=wasm go build -o=main.wasm wasm/main.go
-
 import (
 	"context"
 	"embed"
+	"flag"
 	"fmt"
 	"github.com/hypebeast/go-osc/osc"
 	"log"
 	"net"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/chabad360/multicast"
@@ -19,21 +20,32 @@ import (
 )
 
 var (
-	broadcast     = multicast.New()
-	addr          = ":7001"
-	listenOSCPort = 7000
-	listenOSCAddr = "192.168.254.165"
-	listenAddr    = ":80"
+	broadcast  = multicast.New()
+	OSCOutPort int
+	OSCPort    int
+	OSCAddr    string
+	httpPort   int
+	clipPath   string
 
 	//go:embed index.html
 	//go:embed main.js
 	fs embed.FS
 )
 
-func main() {
-	client := osc.NewClient(listenOSCAddr, listenOSCPort)
+func init() {
+	flag.IntVar(&OSCPort, "osc-input-port", 7000, "Resolume OSC input port")
+	flag.StringVar(&OSCAddr, "osc-addr", "localhost", "Address of device running Resolume")
+	flag.IntVar(&OSCOutPort, "osc-output-port", 7001, "Port Resolume outputs OSC on (if you are using other OSC devices, make sure to set the broadcast address correctly)")
+	flag.IntVar(&httpPort, "port", 8080, "Port that everyone uses to access this system (make sure it's open in your firewall)")
+	flag.StringVar(&clipPath, "clip-path", "/composition/selectedclip", "OSC path for clip you want to track")
+}
 
-	conn, err := net.ListenPacket("udp", addr)
+func main() {
+	flag.Parse()
+
+	client := osc.NewClient(OSCAddr, OSCPort)
+
+	conn, err := net.ListenPacket("udp", ":"+strconv.Itoa(OSCOutPort))
 	if err != nil {
 		fmt.Println("Couldn't listen: ", err)
 	}
@@ -44,7 +56,7 @@ func main() {
 	t := time.NewTicker(time.Second)
 	defer t.Stop()
 
-	message := osc.NewMessage("/composition/selectedclip/name")
+	message := osc.NewMessage(clipPath + "/name")
 	message.Append("?")
 	go func() {
 		for {
@@ -61,7 +73,25 @@ func main() {
 	p.Get("/", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
 	p.Get("/main.js", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
 
-	log.Fatal(http.ListenAndServe(listenAddr, p.Serve()))
+	p.Get("/path", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, clipPath)
+	})
+
+	fmt.Println("open your web browser to:", "http://"+getIP().String()+":"+strconv.Itoa(httpPort))
+
+	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(httpPort), p.Serve()))
+}
+
+func getIP() net.IP {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddr.IP
 }
 
 func listenOSC(conn net.PacketConn) {
@@ -78,12 +108,18 @@ func listenOSC(conn net.PacketConn) {
 				fmt.Println("Unknown packet type!")
 
 			case *osc.Message:
-				broadcast.C <- packet.(*osc.Message).String()
+				msg := packet.(*osc.Message).String()
+				if strings.Contains(msg, clipPath) {
+					broadcast.C <- packet.(*osc.Message).String()
+				}
 
 			case *osc.Bundle:
 				bundle := packet.(*osc.Bundle)
 				for _, message := range bundle.Messages {
-					broadcast.C <- message.String()
+					msg := message.String()
+					if strings.Contains(msg, clipPath) {
+						broadcast.C <- message.String()
+					}
 				}
 			}
 		}
@@ -109,7 +145,6 @@ func websocketStart(w http.ResponseWriter, r *http.Request) {
 			return
 		case m := <-l.C:
 			msg := m.(string)
-			fmt.Println(msg)
 			err = c.Write(ctx, websocket.MessageText, []byte(msg))
 			if err != nil {
 				log.Println(err)

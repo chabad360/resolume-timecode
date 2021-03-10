@@ -1,9 +1,11 @@
 "use strict";
 
-const socket    = new WebSocket('ws://localhost/ws');
+const socket    = new WebSocket('ws://'+location.hostname+(location.port ? ':'+location.port: '')+'/ws');
 
 const timecode  = document.getElementById("timecode");
 const mult      = 1000000000;
+
+let path = "/composition/selectedclip"
 
 let clipName    = "";
 let timePrev    = Date();
@@ -12,6 +14,8 @@ let samples     = 0;
 let posIntervalBuffer   = [];
 let timeIntervalBuffer  = [];
 let estSizeBuffer       = [];
+
+reset();
 
 function maxAppend(array, value, limit) {
     array.unshift(value);
@@ -39,15 +43,15 @@ socket.addEventListener('message', function (event) {
     let timeNow = new Date();
     let data    = event.data.toString();
 
-    if (data.includes("/composition/selectedclip/transport/position ")) {
+    if (data.includes(path+"/transport/position ")) {
         procPos(data, timeNow);
-    } else if (data.includes("/composition/selectedclip/name ")) {
+    } else if (data.includes(path+"/name ")) {
         procName(data);
     }
 });
 
 function procName(data) {
-    data = data.replace("/composition/selectedclip/name ,s ", "");
+    data = data.replace(path+"/name ,s ", "");
     if (data !== clipName) {
         clipName = data;
         reset();
@@ -55,17 +59,23 @@ function procName(data) {
 }
 
 function reset() {
-    samples     = 0;
-    posIntervalBuffer   = [];
-    timeIntervalBuffer  = [];
+    samples = 0;
+    posIntervalBuffer = [];
+    timeIntervalBuffer = [];
     estSizeBuffer = [];
+
+    let response = fetch("/path");
+
+    if (response.ok) {
+        path = response.text()
+    }
 }
 
 function procPos(msg, timeNow) {
     let posInterval  = 0;
     let timeInterval = 0;
 
-    let pos = mult * parseFloat(msg.replace("/composition/selectedclip/transport/position ,f ", ""));
+    let pos = mult * parseFloat(msg.replace(path+"/transport/position ,f ", ""));
     if (pos < 5) {
         reset();
     }
