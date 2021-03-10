@@ -60,33 +60,28 @@ function procName(data) {
 }
 
 function reset() {
-    samples = 0;
-    posPrev = 0;
-    posIntervalBuffer = [];
+    samples            = 0;
+    posPrev            = 0;
+    posIntervalBuffer  = [];
     timeIntervalBuffer = [];
-    estSizeBuffer = [];
+    estSizeBuffer      = [];
+
+    timecode.innerHTML = '-000:00:00.000'
+    ms.innerHTML       = '0.000'
 
     let response = fetch("/path");
 
     if (response.ok) {
         path = response.text()
     }
-
-    timecode.innerHTML = '-000:00:00.000'
-    ms.innerHTML = '0.000'
 }
 
 function procPos(msg, timeNow) {
-    let posInterval  = 0;
-    let timeInterval = 0;
-
     let pos = mult * parseFloat(msg.replace(path+"/transport/position ,f ", ""));
     if (pos < 5) {
         reset();
     }
 
-    // let a = average(posBuffer)
-    // let prevTimeInterval    = average(timeIntervalBuffer);
     let currentPosInterval  = pos - posPrev;
     let currentTimeInterval = (timeNow - timePrev) * mult;
 
@@ -98,22 +93,21 @@ function procPos(msg, timeNow) {
         return;
     }
 
-        posIntervalBuffer    = maxAppend(posIntervalBuffer, currentPosInterval, 100);
-        timeIntervalBuffer   = maxAppend(timeIntervalBuffer, currentTimeInterval, 100);
+    posIntervalBuffer    = maxAppend(posIntervalBuffer, currentPosInterval, 100);
+    timeIntervalBuffer   = maxAppend(timeIntervalBuffer, currentTimeInterval, 100);
 
-        posInterval  = average(posIntervalBuffer);
-        timeInterval = average(timeIntervalBuffer);
-        // timeInterval = 10 * mult;
+    let posInterval  = average(posIntervalBuffer);
+    let timeInterval = average(timeIntervalBuffer);
 
-        let currentEstSize = Math.trunc(timeInterval * (1 / posInterval));
-        let prevEstSize = average(estSizeBuffer);
-        if (samples > 1000 && samples < 1500 && within(prevEstSize, currentEstSize, 0.001)) {
-            estSizeBuffer = maxAppend(estSizeBuffer, currentEstSize, 500);
-        } else if (samples > 500 && samples < 1000 && within(prevEstSize, currentEstSize, 1)) {
-            estSizeBuffer = maxAppend(estSizeBuffer, currentEstSize, 250);
-        } else if (samples < 500) {
-            estSizeBuffer = maxAppend(estSizeBuffer, currentEstSize, 100);
-        }
+    let currentEstSize = Math.trunc(timeInterval * (1 / posInterval));
+    let prevEstSize = average(estSizeBuffer);
+    if (samples > 1000 && samples < 1500 && within(prevEstSize, currentEstSize, 0.001)) {
+        estSizeBuffer = maxAppend(estSizeBuffer, currentEstSize, 500);
+    } else if (samples > 500 && samples < 1000 && within(prevEstSize, currentEstSize, 1)) {
+        estSizeBuffer = maxAppend(estSizeBuffer, currentEstSize, 250);
+    } else if (samples < 500) {
+        estSizeBuffer = maxAppend(estSizeBuffer, currentEstSize, 100);
+    }
 
     samples++;
 
