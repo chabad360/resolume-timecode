@@ -3,11 +3,11 @@ module github.com/chabad360/resolume-timecode
 go 1.16
 
 require (
-	github.com/SierraSoftworks/multicast v0.0.0-20190425200731-c029c77710e4
+	github.com/SierraSoftworks/multicast v0.0.0-20190425200731-c029c77710e4 // indirect
+	github.com/chabad360/multicast v0.0.0-20210310015130-cd8c9ecd5436
 	github.com/go-playground/ansi/v3 v3.0.0 // indirect
 	github.com/go-playground/pure/v5 v5.2.0
 	github.com/gopherjs/gopherjs v0.0.0-20210202160940-bed99a852dfe // indirect
-	github.com/gopherjs/websocket v0.0.0-20191103002815-9a42957e2b3a
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hypebeast/go-osc v0.0.0-20200115085105-85fee7fed692
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect

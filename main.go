@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/SierraSoftworks/multicast"
+	"github.com/chabad360/multicast"
 	"github.com/go-playground/pure/v5"
 	mw "github.com/go-playground/pure/v5/_examples/middleware/logging-recovery"
 	"nhooyr.io/websocket"
@@ -26,7 +26,6 @@ var (
 	listenAddr    = ":80"
 
 	//go:embed index.html
-	//go:embed main.wasm
 	//go:embed main.js
 	fs embed.FS
 )
@@ -60,9 +59,7 @@ func main() {
 	p.Get("/ws", websocketStart)
 	//p.Get("/config", config)
 	p.Get("/", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
-	p.Get("/main.wasm", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
 	p.Get("/main.js", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
-	p.Get("/main.js.map", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
 
 	log.Fatal(http.ListenAndServe(listenAddr, p.Serve()))
 }
