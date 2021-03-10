@@ -3,7 +3,8 @@
 const socket    = new WebSocket('ws://'+location.hostname+(location.port ? ':'+location.port: '')+'/ws');
 
 const timecode  = document.getElementById("timecode");
-const mult      = 1000000000;
+const ms  = document.getElementById("ms");
+const mult      = 10000000000;
 
 let path = "/composition/selectedclip"
 
@@ -60,6 +61,7 @@ function procName(data) {
 
 function reset() {
     samples = 0;
+    posPrev = 0;
     posIntervalBuffer = [];
     timeIntervalBuffer = [];
     estSizeBuffer = [];
@@ -69,6 +71,9 @@ function reset() {
     if (response.ok) {
         path = response.text()
     }
+
+    timecode.innerHTML = '-000:00:00.000'
+    ms.innerHTML = '0.000'
 }
 
 function procPos(msg, timeNow) {
@@ -81,7 +86,7 @@ function procPos(msg, timeNow) {
     }
 
     // let a = average(posBuffer)
-    let prevTimeInterval    = average(timeIntervalBuffer);
+    // let prevTimeInterval    = average(timeIntervalBuffer);
     let currentPosInterval  = pos - posPrev;
     let currentTimeInterval = (timeNow - timePrev) * mult;
 
@@ -89,25 +94,26 @@ function procPos(msg, timeNow) {
         return;
     }
 
-    if (!within(prevTimeInterval, currentTimeInterval, 50) && samples > 500) {
-        //console.log("w");
-    } else {
+    if (currentPosInterval < 0 && posPrev > 0) {
+        return;
+    }
+
         posIntervalBuffer    = maxAppend(posIntervalBuffer, currentPosInterval, 100);
         timeIntervalBuffer   = maxAppend(timeIntervalBuffer, currentTimeInterval, 100);
 
         posInterval  = average(posIntervalBuffer);
         timeInterval = average(timeIntervalBuffer);
+        // timeInterval = 10 * mult;
 
         let currentEstSize = Math.trunc(timeInterval * (1 / posInterval));
         let prevEstSize = average(estSizeBuffer);
-        if (samples > 1000 && samples < 2000 && within(prevEstSize, currentEstSize, 0.001)) {
+        if (samples > 1000 && samples < 1500 && within(prevEstSize, currentEstSize, 0.001)) {
             estSizeBuffer = maxAppend(estSizeBuffer, currentEstSize, 500);
-        } else if (samples > 500 && within(prevEstSize, currentEstSize, 1)) {
+        } else if (samples > 500 && samples < 1000 && within(prevEstSize, currentEstSize, 1)) {
             estSizeBuffer = maxAppend(estSizeBuffer, currentEstSize, 250);
         } else if (samples < 500) {
             estSizeBuffer = maxAppend(estSizeBuffer, currentEstSize, 100);
         }
-    }
 
     samples++;
 
@@ -122,5 +128,6 @@ function procPos(msg, timeNow) {
         timeActual.getUTCMinutes().toString().padStart(2, '0')}:${
         timeActual.getUTCSeconds().toString().padStart(2, '0')}.${
         timeActual.getUTCMilliseconds().toString().padStart(3, '0')}`;
+    ms.innerHTML = `${average(estSizeBuffer)/1000}s`;
     // console.log(`pos: ${pos}\taverage: ${a}\ti: ${interval}\ttime: ${d}\ttimeAverage: ${ta}\ttimeActual: ${t}\ttimeTotal: ${average(totalArray)}\ttimeLeft: ${timeLeft}`);
 }
