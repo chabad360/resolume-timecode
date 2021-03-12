@@ -6,8 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-playground/pure/v5"
-	"github.com/hypebeast/go-osc/osc"
-	"log"
+
 	"net"
 	"net/http"
 	"nhooyr.io/websocket"
@@ -18,7 +17,7 @@ import (
 )
 
 var (
-	Server            = server{}
+	sysServer         = server{}
 	broadcast         = New()
 	OSCOutPort string = "7001"
 	OSCPort    string = "7000"
@@ -39,9 +38,11 @@ type server struct {
 }
 
 func main() {
+	//p := profile.Start(profile.MemProfile, profile.ProfilePath("."), profile.NoShutdownHook)
+	//defer p.Stop()
 	gui()
 
-	Server.Stop()
+	sysServer.Stop()
 }
 
 func (s *server) Start() error {
@@ -51,7 +52,7 @@ func (s *server) Start() error {
 	}
 
 	port, _ := strconv.Atoi(OSCPort)
-	client := osc.NewClient(OSCAddr, port)
+	client := NewClient(OSCAddr, port)
 
 	s.conn, err = net.ListenPacket("udp", ":"+OSCOutPort)
 	if err != nil {
@@ -64,12 +65,13 @@ func (s *server) Start() error {
 	s.wg.Add(1)
 	go func() {
 		defer s.wg.Done()
+		message := NewMessage(clipPath + "/name")
+		message.Append("?")
 		for !s.running {
 		}
 		for s.running {
 			time.Sleep(time.Second)
-			message := osc.NewMessage(clipPath + "/name")
-			message.Append("?")
+			message.Address = clipPath + "/name"
 			client.Send(message)
 		}
 	}()
@@ -109,7 +111,7 @@ func (s *server) Stop() {
 func getIP() net.IP {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	defer conn.Close()
 
@@ -120,7 +122,7 @@ func getIP() net.IP {
 
 func listenOSC(conn net.PacketConn, wg *sync.WaitGroup) {
 	defer wg.Done()
-	server := &osc.Server{}
+	server := &Server{}
 	for {
 		packet, err := server.ReceivePacket(conn)
 		if err != nil {
@@ -133,14 +135,14 @@ func listenOSC(conn net.PacketConn, wg *sync.WaitGroup) {
 			switch packet.(type) {
 			default:
 
-			case *osc.Message:
-				msg := packet.(*osc.Message).String()
+			case *Message:
+				msg := packet.(*Message).String()
 				if strings.Contains(msg, clipPath) {
-					broadcast.Publish(packet.(*osc.Message).String())
+					broadcast.Publish(packet.(*Message).String())
 				}
 
-			case *osc.Bundle:
-				bundle := packet.(*osc.Bundle)
+			case *Bundle:
+				bundle := packet.(*Bundle)
 				for _, message := range bundle.Messages {
 					msg := message.String()
 					if strings.Contains(msg, clipPath) {
@@ -161,6 +163,12 @@ func websocketStart(w http.ResponseWriter, r *http.Request) {
 
 	ctx := c.CloseRead(context.Background())
 
+	err = c.Write(ctx, websocket.MessageText, []byte("/path ,s "+clipPath))
+	if err != nil {
+		//log.Println(err)
+		return
+	}
+
 	l := broadcast.Listen(r.RemoteAddr)
 	defer broadcast.Close(r.RemoteAddr)
 
@@ -173,7 +181,7 @@ func websocketStart(w http.ResponseWriter, r *http.Request) {
 			msg := m.(string)
 			err = c.Write(ctx, websocket.MessageText, []byte(msg))
 			if err != nil {
-				log.Println(err)
+				//log.Println(err)
 				return
 			}
 		}
