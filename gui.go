@@ -34,7 +34,7 @@ func gui() {
 		Items: []*widget.FormItem{
 			{Text: "Path", Widget: path, HintText: "OSC Path for clip to listen to"},
 			{Text: "OSC Input Port", Widget: oscInput, HintText: "OSC Input port (usually 7000)"},
-			{Text: "OSC Output Port", Widget: oscOutput, HintText: "OSC Output port (usually 7001) Note: if you have multiple services interacting with OSC, make use the correct broadcast address."},
+			{Text: "OSC Output Port", Widget: oscOutput, HintText: "OSC Output port (usually 7001) Note: If you have multiple services using Resolume OSC make use the correct broadcast address."},
 			{Text: "OSC Host Address", Widget: oscAddr, HintText: "IP address of device that's running Resolume (make sure to open the OSC input port in your firewall)"},
 		},
 		SubmitText: "Start Server",

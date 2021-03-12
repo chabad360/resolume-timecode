@@ -44,20 +44,18 @@ func main() {
 	Server.Stop()
 }
 
-func (s *server) Start() {
+func (s *server) Start() error {
+	var err error
 	if s.running {
-		return
+		return nil
 	}
 
-	port, err := strconv.Atoi(OSCPort)
-	if err != nil {
-		log.Fatal(err)
-	}
+	port, _ := strconv.Atoi(OSCPort)
 	client := osc.NewClient(OSCAddr, port)
 
 	s.conn, err = net.ListenPacket("udp", ":"+OSCOutPort)
 	if err != nil {
-		fmt.Println("Couldn't listen: ", err)
+		return fmt.Errorf("Couldn't listen: %w", err)
 	}
 
 	s.wg.Add(1)
@@ -88,11 +86,11 @@ func (s *server) Start() {
 	go func() {
 		defer s.wg.Done()
 		if err := s.httpServer.ListenAndServe(); err != http.ErrServerClosed {
-			log.Fatalf("ListenAndServe(): %v", err)
 		}
 	}()
 
 	s.running = true
+	return nil
 }
 
 func (s *server) Stop() {
@@ -129,13 +127,11 @@ func listenOSC(conn net.PacketConn, wg *sync.WaitGroup) {
 			if errors.Is(err, net.ErrClosed) {
 				return
 			}
-			fmt.Println("Server error: " + err.Error())
 		}
 
 		if packet != nil {
 			switch packet.(type) {
 			default:
-				fmt.Println("Unknown packet type!")
 
 			case *osc.Message:
 				msg := packet.(*osc.Message).String()
@@ -159,7 +155,6 @@ func listenOSC(conn net.PacketConn, wg *sync.WaitGroup) {
 func websocketStart(w http.ResponseWriter, r *http.Request) {
 	c, err := websocket.Accept(w, r, nil)
 	if err != nil {
-		log.Println(err)
 		return
 	}
 	defer c.Close(websocket.StatusInternalError, "the sky is falling")

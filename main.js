@@ -3,7 +3,7 @@
 const socket    = new WebSocket('ws://'+location.hostname+(location.port ? ':'+location.port: '')+'/ws');
 
 const timecode  = document.getElementById("timecode");
-const ms  = document.getElementById("ms");
+const ms        = document.getElementById("ms");
 const mult      = 10000000000;
 
 let path = "/composition/selectedclip"
@@ -59,6 +59,7 @@ socket.addEventListener('message', function (event) {
 
 socket.addEventListener('close', function () {
     timecode.innerHTML = "Server Stopped";
+
 })
 
 function procPath(data) {
