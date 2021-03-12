@@ -3,64 +3,79 @@ package main
 import (
 	"context"
 	"embed"
-	"flag"
+	"errors"
 	"fmt"
+	"github.com/chabad360/multicast"
+	"github.com/go-playground/pure/v5"
+	mw "github.com/go-playground/pure/v5/_examples/middleware/logging-recovery"
 	"github.com/hypebeast/go-osc/osc"
 	"log"
 	"net"
 	"net/http"
+	"nhooyr.io/websocket"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
-
-	"github.com/chabad360/multicast"
-	"github.com/go-playground/pure/v5"
-	mw "github.com/go-playground/pure/v5/_examples/middleware/logging-recovery"
-	"nhooyr.io/websocket"
 )
 
 var (
-	broadcast  = multicast.New()
-	OSCOutPort int
-	OSCPort    int
-	OSCAddr    string
-	httpPort   int
-	clipPath   string
+	Server            = server{}
+	broadcast         = multicast.New()
+	OSCOutPort string = "7001"
+	OSCPort    string = "7000"
+	OSCAddr    string = "127.0.0.1"
+	httpPort   string = "8080"
+	clipPath   string = "/composition/selectedclip"
 
 	//go:embed index.html
 	//go:embed main.js
 	fs embed.FS
 )
 
-func init() {
-	flag.IntVar(&OSCPort, "osc-input-port", 7000, "Resolume OSC input port")
-	flag.StringVar(&OSCAddr, "osc-addr", "localhost", "Address of device running Resolume")
-	flag.IntVar(&OSCOutPort, "osc-output-port", 7001, "Port Resolume outputs OSC on (if you are using other OSC devices, make sure to set the broadcast address correctly)")
-	flag.IntVar(&httpPort, "port", 8080, "Port that everyone uses to access this system (make sure it's open in your firewall)")
-	flag.StringVar(&clipPath, "clip-path", "/composition/selectedclip", "OSC path for clip you want to track")
+type server struct {
+	httpServer *http.Server
+	conn       net.PacketConn
+	wg         sync.WaitGroup
+	ticker     *time.Ticker
+	running    bool
 }
 
 func main() {
-	flag.Parse()
+	gui()
 
-	client := osc.NewClient(OSCAddr, OSCPort)
+	Server.Stop()
+}
 
-	conn, err := net.ListenPacket("udp", ":"+strconv.Itoa(OSCOutPort))
+func (s *server) Start() {
+	if s.running {
+		return
+	}
+
+	port, err := strconv.Atoi(OSCPort)
+	if err != nil {
+		log.Fatal(err)
+	}
+	client := osc.NewClient(OSCAddr, port)
+
+	s.conn, err = net.ListenPacket("udp", ":"+OSCOutPort)
 	if err != nil {
 		fmt.Println("Couldn't listen: ", err)
 	}
-	defer conn.Close()
 
-	go listenOSC(conn)
+	s.wg.Add(1)
+	go listenOSC(s.conn, &s.wg)
 
-	t := time.NewTicker(time.Second)
-	defer t.Stop()
+	if s.ticker == nil {
+		s.ticker = time.NewTicker(time.Second)
+	} else {
+		s.ticker.Reset(time.Second)
+	}
 
-	message := osc.NewMessage(clipPath + "/name")
-	message.Append("?")
 	go func() {
-		for {
-			<-t.C
+		for _ = range s.ticker.C {
+			message := osc.NewMessage(clipPath + "/name")
+			message.Append("?")
 			client.Send(message)
 		}
 	}()
@@ -69,17 +84,34 @@ func main() {
 	p.Use(mw.LoggingAndRecovery(true))
 
 	p.Get("/ws", websocketStart)
-	//p.Get("/config", config)
 	p.Get("/", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
 	p.Get("/main.js", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
 
-	p.Get("/path", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, clipPath)
-	})
+	s.httpServer = &http.Server{Addr: ":" + httpPort, Handler: p.Serve()}
 
-	fmt.Println("open your web browser to:", "http://"+getIP().String()+":"+strconv.Itoa(httpPort))
+	s.wg.Add(1)
+	go func() {
+		defer s.wg.Done()
+		if err := s.httpServer.ListenAndServe(); err != http.ErrServerClosed {
+			log.Fatalf("ListenAndServe(): %v", err)
+		}
+	}()
 
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(httpPort), p.Serve()))
+	s.running = true
+}
+
+func (s *server) Stop() {
+	broadcast.C <- "/stop "
+	s.ticker.Stop()
+	ctx, c := context.WithTimeout(context.Background(), time.Second*3)
+	err := s.httpServer.Shutdown(ctx)
+	s.conn.Close()
+	if err != nil {
+		s.httpServer.Close()
+	}
+	c()
+	s.wg.Wait()
+	s.running = false
 }
 
 func getIP() net.IP {
@@ -94,11 +126,15 @@ func getIP() net.IP {
 	return localAddr.IP
 }
 
-func listenOSC(conn net.PacketConn) {
+func listenOSC(conn net.PacketConn, wg *sync.WaitGroup) {
+	defer wg.Done()
 	server := &osc.Server{}
 	for {
 		packet, err := server.ReceivePacket(conn)
 		if err != nil {
+			if errors.Is(err, net.ErrClosed) {
+				return
+			}
 			fmt.Println("Server error: " + err.Error())
 		}
 

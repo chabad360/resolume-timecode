@@ -3,6 +3,7 @@ module github.com/chabad360/resolume-timecode
 go 1.16
 
 require (
+	fyne.io/fyne/v2 v2.0.1
 	github.com/SierraSoftworks/multicast v0.0.0-20190425200731-c029c77710e4 // indirect
 	github.com/chabad360/multicast v0.0.0-20210310015130-cd8c9ecd5436
 	github.com/go-playground/ansi/v3 v3.0.0 // indirect

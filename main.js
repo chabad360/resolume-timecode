@@ -48,8 +48,23 @@ socket.addEventListener('message', function (event) {
         procPos(data, timeNow);
     } else if (data.includes(path+"/name ")) {
         procName(data);
+    } else if (data.includes("/path ")) {
+        procPath(data);
+    } else if (data.includes("/refresh ")) {
+        location.reload();
+    } else if (data.includes("/stop ")) {
+        socket.close();
     }
 });
+
+socket.addEventListener('close', function () {
+    timecode.innerHTML = "Server Stopped";
+})
+
+function procPath(data) {
+    path = data.replace("/path ,s ", "");
+    reset();
+}
 
 function procName(data) {
     data = data.replace(path+"/name ,s ", "");
@@ -68,12 +83,6 @@ function reset() {
 
     timecode.innerHTML = '-000:00:00.000'
     ms.innerHTML       = '0.000'
-
-    let response = fetch("/path");
-
-    if (response.ok) {
-        path = response.text()
-    }
 }
 
 function procPos(msg, timeNow) {
