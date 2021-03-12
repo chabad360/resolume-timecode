@@ -5,8 +5,6 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/validation"
-	//"fyne.io/fyne/v2/layout"
-	//"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -36,7 +34,7 @@ func gui() {
 		Items: []*widget.FormItem{
 			{Text: "Path", Widget: path, HintText: "OSC Path for clip to listen to"},
 			{Text: "OSC Input Port", Widget: oscInput, HintText: "OSC Input port (usually 7000)"},
-			{Text: "OSC Output Port", Widget: oscOutput, HintText: "OSC Output port (usually 7001)"},
+			{Text: "OSC Output Port", Widget: oscOutput, HintText: "OSC Output port (usually 7001) Note: if you have multiple services interacting with OSC, make use the correct broadcast address."},
 			{Text: "OSC Host Address", Widget: oscAddr, HintText: "IP address of device that's running Resolume (make sure to open the OSC input port in your firewall)"},
 		},
 		SubmitText: "Start Server",
@@ -64,7 +62,7 @@ func gui() {
 
 		infoLabel.Text = fmt.Sprintf("Server Started. Open your web browser to: http://%s:%s", getIP().String(), httpPort)
 		form.SubmitText = "Update Server"
-		broadcast.C <- "/path ,s " + clipPath
+		broadcast.Publish("/path ,s " + clipPath)
 		oscOutput.Disable()
 		oscInput.Disable()
 		oscAddr.Disable()
