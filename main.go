@@ -5,6 +5,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"github.com/chabad360/resolume-timecode/osc"
 	"github.com/go-playground/pure/v5"
 
 	"net"
@@ -17,7 +18,6 @@ import (
 )
 
 var (
-	sysServer         = server{}
 	broadcast         = New()
 	OSCOutPort string = "7001"
 	OSCPort    string = "7000"
@@ -28,84 +28,84 @@ var (
 	//go:embed index.html
 	//go:embed main.js
 	fs embed.FS
-)
 
-type server struct {
-	httpServer *http.Server
+	p          = pure.New()
+	httpServer = &http.Server{Addr: ":" + httpPort, Handler: p.Serve()}
 	conn       net.PacketConn
 	wg         sync.WaitGroup
 	running    bool
-}
+	message    = osc.NewMessage(clipPath + "/name")
+	client     = osc.NewClient(OSCAddr, 7000)
+	msg        string
+)
 
 func main() {
 	//p := profile.Start(profile.MemProfile, profile.ProfilePath("."), profile.NoShutdownHook)
 	//defer p.Stop()
+
+	message.Append("?")
+
+	p.Get("/ws", websocketStart)
+	p.Get("/", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
+	p.Get("/main.js", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
+
 	gui()
 
-	sysServer.Stop()
+	serverStop()
 }
 
-func (s *server) Start() error {
+func serverStart() error {
 	var err error
-	if s.running {
+	if running {
 		return nil
 	}
 
 	port, _ := strconv.Atoi(OSCPort)
-	client := NewClient(OSCAddr, port)
+	client.SetIP(OSCAddr)
+	client.SetPort(port)
 
-	s.conn, err = net.ListenPacket("udp", ":"+OSCOutPort)
+	conn, err = net.ListenPacket("udp", ":"+OSCOutPort)
 	if err != nil {
 		return fmt.Errorf("Couldn't listen: %w", err)
 	}
 
-	s.wg.Add(1)
-	go listenOSC(s.conn, &s.wg)
+	wg.Add(1)
+	go listenOSC(conn, &wg)
 
-	s.wg.Add(1)
+	wg.Add(1)
 	go func() {
-		defer s.wg.Done()
-		message := NewMessage(clipPath + "/name")
-		message.Append("?")
-		for !s.running {
+		defer wg.Done()
+		for !running {
 		}
-		for s.running {
+		for running {
 			time.Sleep(time.Second)
 			message.Address = clipPath + "/name"
 			client.Send(message)
 		}
 	}()
 
-	p := pure.New()
-
-	p.Get("/ws", websocketStart)
-	p.Get("/", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
-	p.Get("/main.js", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
-
-	s.httpServer = &http.Server{Addr: ":" + httpPort, Handler: p.Serve()}
-
-	s.wg.Add(1)
+	wg.Add(1)
 	go func() {
-		defer s.wg.Done()
-		if err := s.httpServer.ListenAndServe(); err != http.ErrServerClosed {
+		defer wg.Done()
+		if err := httpServer.ListenAndServe(); err != http.ErrServerClosed {
 		}
 	}()
 
-	s.running = true
+	running = true
 	return nil
 }
 
-func (s *server) Stop() {
+func serverStop() {
 	broadcast.Publish("/stop ")
 	ctx, c := context.WithTimeout(context.Background(), time.Second*3)
-	err := s.httpServer.Shutdown(ctx)
-	s.conn.Close()
+	err := httpServer.Shutdown(ctx)
+	conn.Close()
 	if err != nil {
-		s.httpServer.Close()
+		httpServer.Close()
 	}
 	c()
-	s.running = false
-	s.wg.Wait()
+	running = false
+	wg.Wait()
 }
 
 func getIP() net.IP {
@@ -115,14 +115,12 @@ func getIP() net.IP {
 	}
 	defer conn.Close()
 
-	localAddr := conn.LocalAddr().(*net.UDPAddr)
-
-	return localAddr.IP
+	return conn.LocalAddr().(*net.UDPAddr).IP
 }
 
 func listenOSC(conn net.PacketConn, wg *sync.WaitGroup) {
 	defer wg.Done()
-	server := &Server{}
+	server := &osc.Server{}
 	for {
 		packet, err := server.ReceivePacket(conn)
 		if err != nil {
@@ -132,21 +130,20 @@ func listenOSC(conn net.PacketConn, wg *sync.WaitGroup) {
 		}
 
 		if packet != nil {
-			switch packet.(type) {
+			switch p := packet.(type) {
 			default:
-
-			case *Message:
-				msg := packet.(*Message).String()
+				continue
+			case *osc.Message:
+				msg = p.String()
 				if strings.Contains(msg, clipPath) {
-					broadcast.Publish(packet.(*Message).String())
+					broadcast.Publish(msg[len(clipPath):])
 				}
 
-			case *Bundle:
-				bundle := packet.(*Bundle)
-				for _, message := range bundle.Messages {
-					msg := message.String()
+			case *osc.Bundle:
+				for _, message := range p.Messages {
+					msg = message.String()
 					if strings.Contains(msg, clipPath) {
-						broadcast.Publish(message.String())
+						broadcast.Publish(msg[len(clipPath):])
 					}
 				}
 			}
@@ -163,12 +160,6 @@ func websocketStart(w http.ResponseWriter, r *http.Request) {
 
 	ctx := c.CloseRead(context.Background())
 
-	err = c.Write(ctx, websocket.MessageText, []byte("/path ,s "+clipPath))
-	if err != nil {
-		//log.Println(err)
-		return
-	}
-
 	l := broadcast.Listen(r.RemoteAddr)
 	defer broadcast.Close(r.RemoteAddr)
 
@@ -178,8 +169,7 @@ func websocketStart(w http.ResponseWriter, r *http.Request) {
 			c.Close(websocket.StatusNormalClosure, "")
 			return
 		case m := <-l:
-			msg := m.(string)
-			err = c.Write(ctx, websocket.MessageText, []byte(msg))
+			err = c.Write(ctx, websocket.MessageText, []byte(m.(string)))
 			if err != nil {
 				//log.Println(err)
 				return

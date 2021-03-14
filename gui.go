@@ -10,9 +10,9 @@ import (
 
 func gui() {
 	a := app.New()
-	w := a.NewWindow("Resolume Timecode sysServer")
+	w := a.NewWindow("Resolume Timecode Server")
 
-	infoLabel := widget.NewLabel("sysServer Stopped")
+	infoLabel := widget.NewLabel("Server Stopped")
 
 	path := widget.NewEntry()
 	path.SetText(clipPath)
@@ -37,15 +37,15 @@ func gui() {
 			{Text: "OSC Output Port", Widget: oscOutput, HintText: "OSC Output port (usually 7001) Note: If you have multiple services using Resolume OSC make use the correct broadcast address."},
 			{Text: "OSC Host Address", Widget: oscAddr, HintText: "IP address of device that's running Resolume (make sure to open the OSC input port in your firewall)"},
 		},
-		SubmitText: "Start sysServer",
-		CancelText: "Stop sysServer",
+		SubmitText: "Start Server",
+		CancelText: "Stop Server",
 	}
 
 	form.OnCancel = func() {
-		infoLabel.Text = "Stopping sysServer"
-		sysServer.Stop()
-		infoLabel.Text = "sysServer Stopped"
-		form.SubmitText = "Start sysServer"
+		infoLabel.Text = "Stopping Server"
+		serverStop()
+		infoLabel.Text = "Server Stopped"
+		form.SubmitText = "Start Server"
 		oscOutput.Enable()
 		oscInput.Enable()
 		oscAddr.Enable()
@@ -56,13 +56,12 @@ func gui() {
 		OSCOutPort = oscOutput.Text
 		OSCPort = oscInput.Text
 		OSCAddr = oscAddr.Text
-		infoLabel.Text = "Starting sysServer"
+		infoLabel.Text = "Starting Server"
 
-		sysServer.Start()
+		serverStart()
 
-		infoLabel.Text = fmt.Sprintf("sysServer Started. Open your web browser to: http://%s:%s", getIP().String(), httpPort)
-		form.SubmitText = "Update sysServer"
-		broadcast.Publish("/path ,s " + clipPath)
+		infoLabel.Text = fmt.Sprintf("Server Started. Open your web browser to: http://%s:%s", getIP().String(), httpPort)
+		form.SubmitText = "Update Server"
 		oscOutput.Disable()
 		oscInput.Disable()
 		oscAddr.Disable()

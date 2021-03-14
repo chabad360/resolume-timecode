@@ -44,9 +44,9 @@ socket.addEventListener('message', function (event) {
     let timeNow = new Date();
     let data    = event.data.toString();
 
-    if (data.includes(path+"/transport/position ")) {
+    if (data.includes("/transport/position ")) {
         procPos(data, timeNow);
-    } else if (data.includes(path+"/name ")) {
+    } else if (data.includes("/name ")) {
         procName(data);
     } else if (data.includes("/path ")) {
         procPath(data);
