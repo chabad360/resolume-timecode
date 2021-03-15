@@ -36,10 +36,6 @@ func (f HandlerFunc) HandleMessage(msg *Message) {
 	f(msg)
 }
 
-////
-// StandardDispatcher
-////
-
 // StandardDispatcher is a dispatcher for OSC packets. It handles the dispatching of
 // received OSC packets to Handlers for their given address.
 type StandardDispatcher struct {

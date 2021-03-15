@@ -46,8 +46,8 @@ func getRegEx(pattern string) *regexp.Regexp {
 	return regexp.MustCompile(pattern)
 }
 
-// getTypeTag returns the OSC type tag for the given argument.
-func getTypeTag(arg interface{}) (string, error) {
+// GetTypeTag returns the OSC type tag for the given argument.
+func GetTypeTag(arg interface{}) (string, error) {
 	switch t := arg.(type) {
 	case bool:
 		if arg.(bool) {

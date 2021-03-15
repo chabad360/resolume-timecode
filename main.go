@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/chabad360/resolume-timecode/osc"
 	"github.com/go-playground/pure/v5"
-	"github.com/pkg/profile"
 	"net"
 	"net/http"
 	"nhooyr.io/websocket"
@@ -18,7 +17,9 @@ import (
 )
 
 var (
-	broadcast         = New()
+	broadcast = &Distributor{
+		l: map[string]chan []byte{},
+	}
 	OSCOutPort string = "7001"
 	OSCPort    string = "7000"
 	OSCAddr    string = "127.0.0.1"
@@ -34,16 +35,14 @@ var (
 	conn       net.PacketConn
 	wg         sync.WaitGroup
 	running    bool
-	message    = osc.NewMessage(clipPath + "/name")
-	client     = osc.NewClient(OSCAddr, 7000)
+	message    = &osc.Message{Arguments: []interface{}{"?"}}
+	client     = &osc.Client{IP: OSCPort, Port: 7000}
 	msg        string
 )
 
 func main() {
-	pr := profile.Start(profile.MemProfile, profile.ProfilePath("."), profile.NoShutdownHook)
-	defer pr.Stop()
-
-	message.Append("?")
+	//pr := profile.Start(profile.MemProfile, profile.ProfilePath("."), profile.NoShutdownHook)
+	//defer pr.Stop()
 
 	p.Get("/ws", websocketStart)
 	p.Get("/", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
@@ -61,12 +60,12 @@ func serverStart() error {
 	}
 
 	port, _ := strconv.Atoi(OSCPort)
-	client.SetIP(OSCAddr)
-	client.SetPort(port)
+	client.IP = OSCAddr
+	client.Port = port
 
 	conn, err = net.ListenPacket("udp", ":"+OSCOutPort)
 	if err != nil {
-		return fmt.Errorf("Couldn't listen: %w", err)
+		return fmt.Errorf("couldn't listen: %w", err)
 	}
 
 	wg.Add(1)
@@ -74,23 +73,22 @@ func serverStart() error {
 
 	wg.Add(1)
 	go func() {
-		defer wg.Done()
 		for !running {
 		}
 		for running {
 			time.Sleep(time.Second)
-			message.Address = clipPath + "/name"
+			message.Address = fmt.Sprintf("%s/name", clipPath)
 			client.Send(message)
 		}
+		wg.Done()
 	}()
 
 	httpServer = &http.Server{Addr: ":" + httpPort, Handler: p.Serve()}
 
 	wg.Add(1)
 	go func() {
-		defer wg.Done()
-		if err := httpServer.ListenAndServe(); err != http.ErrServerClosed {
-		}
+		httpServer.ListenAndServe()
+		wg.Done()
 	}()
 
 	running = true
@@ -98,7 +96,7 @@ func serverStart() error {
 }
 
 func serverStop() {
-	broadcast.Publish("/stop ")
+	broadcast.Publish([]byte("/stop "))
 	ctx, c := context.WithTimeout(context.Background(), time.Second*3)
 	err := httpServer.Shutdown(ctx)
 	if conn != nil {
@@ -140,14 +138,14 @@ func listenOSC(conn net.PacketConn, wg *sync.WaitGroup) {
 			case *osc.Message:
 				msg = p.String()
 				if strings.Contains(msg, clipPath) {
-					broadcast.Publish(msg[len(clipPath):])
+					broadcast.Publish([]byte(msg[len(clipPath):]))
 				}
 
 			case *osc.Bundle:
 				for _, message := range p.Messages {
 					msg = message.String()
 					if strings.Contains(msg, clipPath) {
-						broadcast.Publish(msg[len(clipPath):])
+						broadcast.Publish([]byte(msg[len(clipPath):]))
 					}
 				}
 			}
@@ -173,7 +171,7 @@ func websocketStart(w http.ResponseWriter, r *http.Request) {
 			c.Close(websocket.StatusNormalClosure, "")
 			return
 		case m := <-l:
-			err = c.Write(ctx, websocket.MessageText, []byte(m))
+			err = c.Write(ctx, websocket.MessageText, m)
 			if err != nil {
 				//log.Println(err)
 				return

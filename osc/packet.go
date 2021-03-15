@@ -6,11 +6,11 @@ import (
 	"encoding/binary"
 	"fmt"
 	"reflect"
-	"strings"
 	"time"
 )
 
-var str strings.Builder
+//var str strings.Builder
+var str []byte
 
 // Packet is the interface for Message and Bundle.
 type Packet interface {
@@ -88,16 +88,16 @@ func (msg *Message) TypeTags() (string, error) {
 		return "", fmt.Errorf("message is nil")
 	}
 
-	tags := ","
+	tags := []byte{','}
 	for _, m := range msg.Arguments {
-		s, err := getTypeTag(m)
+		s, err := GetTypeTag(m)
 		if err != nil {
 			return "", err
 		}
-		tags += s
+		tags = append(tags, s...)
 	}
 
-	return tags, nil
+	return string(tags), nil
 }
 
 // String implements the fmt.Stringer interface.
@@ -108,27 +108,29 @@ func (msg *Message) String() string {
 
 	tags, _ := msg.TypeTags()
 
-	str.Reset()
-	fmt.Fprintf(&str, "%s %s", msg.Address, tags)
+	str = str[len(str):]
+	str = append(str, msg.Address...)
+	str = append(str, ' ')
+	str = append(str, tags...)
 
 	for _, arg := range msg.Arguments {
 		switch arg.(type) {
 		case bool, int32, int64, float32, float64, string:
-			fmt.Fprintf(&str, " %v", arg)
+			str = append(str, fmt.Sprintf(" %v", arg)...)
 
 		case nil:
-			str.WriteString(" Nil")
+			str = append(str, " Nil"...)
 
 		case []byte:
-			str.WriteString(" blob")
+			str = append(str, " blob"...)
 
 		case Timetag:
 			timeTag := arg.(Timetag)
-			fmt.Fprintf(&str, " %d", timeTag.TimeTag())
+			str = append(str, fmt.Sprintf(" %d", timeTag.TimeTag())...)
 		}
 	}
 
-	return str.String()
+	return string(str)
 }
 
 // CountArguments returns the number of arguments.
@@ -268,12 +270,13 @@ func (b *Bundle) Append(pck Packet) error {
 func (b *Bundle) MarshalBinary() ([]byte, error) {
 	// Add the '#bundle' string
 	data := new(bytes.Buffer)
-	if _, err := writePaddedString("#bundle", data); err != nil {
+	if _, err = writePaddedString("#bundle", data); err != nil {
 		return nil, err
 	}
 
 	// Add the time tag
-	bd, err := b.Timetag.MarshalBinary()
+	var bd []byte
+	bd, err = b.Timetag.MarshalBinary()
 	if err != nil {
 		return nil, err
 	}
@@ -283,7 +286,8 @@ func (b *Bundle) MarshalBinary() ([]byte, error) {
 
 	// Process all OSC Messages
 	for _, m := range b.Messages {
-		buf, err := m.MarshalBinary()
+		var buf []byte
+		buf, err = m.MarshalBinary()
 		if err != nil {
 			return nil, err
 		}
@@ -301,7 +305,8 @@ func (b *Bundle) MarshalBinary() ([]byte, error) {
 
 	// Process all OSC Bundles
 	for _, b := range b.Bundles {
-		buf, err := b.MarshalBinary()
+		var buf []byte
+		buf, err = b.MarshalBinary()
 		if err != nil {
 			return nil, err
 		}

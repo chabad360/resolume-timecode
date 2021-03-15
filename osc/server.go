@@ -97,11 +97,7 @@ func (s *Server) readFromConnection(c net.PacketConn) (Packet, error) {
 // ParsePacket parses the given msg string and returns a Packet
 func ParsePacket(msg string) (Packet, error) {
 	var start int
-	p, err := readPacket(bytes.NewBufferString(msg), &start, len(msg))
-	if err != nil {
-		return nil, err
-	}
-	return p, nil
+	return readPacket(bytes.NewBufferString(msg), &start, len(msg))
 }
 
 // receivePacket receives an OSC packet from the given reader.
@@ -130,36 +126,38 @@ func readPacket(reader *bytes.Buffer, start *int, end int) (Packet, error) {
 // readBundle reads an Bundle from reader.
 func readBundle(reader *bytes.Buffer, start *int, end int) (*Bundle, error) {
 	// Read the '#bundle' OSC string
-	startTag, n, err := readPaddedString(reader)
+	var startTag string
+	startTag, n, err = readPaddedString(reader)
 	if err != nil {
 		return nil, err
 	}
 	*start += n
 
 	if startTag != bundleTagString {
-		return nil, fmt.Errorf("Invalid bundle start tag: %s", startTag)
+		return nil, fmt.Errorf("invalid bundle start tag: %s", startTag)
 	}
 
 	// Read the timetag
 	var timeTag uint64
-	if err := binary.Read(reader, binary.BigEndian, &timeTag); err != nil {
+	if err = binary.Read(reader, binary.BigEndian, &timeTag); err != nil {
 		return nil, err
 	}
 	*start += 8
 
 	// Create a new bundle
-	bundle := NewBundle(timetagToTime(timeTag))
+	bundle := &Bundle{Timetag: *NewTimetagFromTimetag(timeTag)}
 
 	// Read until the end of the buffer
 	for *start < end {
 		// Read the size of the bundle element
 		var length int32
-		if err := binary.Read(reader, binary.BigEndian, &length); err != nil {
+		if err = binary.Read(reader, binary.BigEndian, &length); err != nil {
 			return nil, err
 		}
 		*start += 4
 
-		p, err := readPacket(reader, start, end)
+		var p Packet
+		p, err = readPacket(reader, start, end)
 		if err != nil {
 			return nil, err
 		}
@@ -174,14 +172,15 @@ func readBundle(reader *bytes.Buffer, start *int, end int) (*Bundle, error) {
 // readMessage from `reader`.
 func readMessage(reader *bytes.Buffer, start *int) (*Message, error) {
 	// First, read the OSC address
-	addr, n, err := readPaddedString(reader)
+	var addr string
+	addr, n, err = readPaddedString(reader)
 	if err != nil {
 		return nil, err
 	}
 	*start += n
 
 	// Read all arguments
-	msg := NewMessage(addr)
+	msg := &Message{Address: addr}
 	if err = readArguments(msg, reader, start); err != nil {
 		return nil, err
 	}
@@ -192,8 +191,8 @@ func readMessage(reader *bytes.Buffer, start *int) (*Message, error) {
 // readArguments from `reader` and add them to the OSC message `msg`.
 func readArguments(msg *Message, reader *bytes.Buffer, start *int) error {
 	// Read the type tag string
-	var n int
-	typetags, n, err := readPaddedString(reader)
+	var typetags string
+	typetags, n, err = readPaddedString(reader)
 	if err != nil {
 		return err
 	}

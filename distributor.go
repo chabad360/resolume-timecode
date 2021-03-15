@@ -3,43 +3,36 @@ package main
 import "sync"
 
 type Distributor struct {
-	l map[string]chan string
+	l map[string]chan []byte
 	m sync.RWMutex
 }
 
-func New() *Distributor {
-	return &Distributor{
-		l: map[string]chan string{},
-	}
-}
-
-func (d *Distributor) Listen(key string) <-chan string {
-	ch := make(chan string)
+func (d *Distributor) Listen(key string) <-chan []byte {
+	ch := make(chan []byte)
 	d.m.Lock()
-	defer d.m.Unlock()
 
 	if och, ok := d.l[key]; ok {
 		close(och)
 	}
 
 	d.l[key] = ch
+	d.m.Unlock()
 	return ch
 }
 
 func (d *Distributor) Close(key string) {
 	d.m.Lock()
-	defer d.m.Unlock()
 
 	if och, ok := d.l[key]; ok {
 		close(och)
 	}
 
 	delete(d.l, key)
+	d.m.Unlock()
 }
 
-func (d *Distributor) Publish(v string) {
+func (d *Distributor) Publish(v []byte) {
 	d.m.RLock()
-	defer d.m.RUnlock()
 
 	for _, ch := range d.l {
 		select {
@@ -47,4 +40,5 @@ func (d *Distributor) Publish(v string) {
 		default:
 		}
 	}
+	d.m.RUnlock()
 }

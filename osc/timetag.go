@@ -31,8 +31,9 @@ func NewTimetag(timeStamp time.Time) *Timetag {
 
 // NewTimetagFromTimetag creates a new Timetag from the given `timetag`.
 func NewTimetagFromTimetag(timetag uint64) *Timetag {
-	t := timetagToTime(timetag)
-	return NewTimetag(t)
+	return &Timetag{
+		time:    timetagToTime(timetag),
+		timeTag: timetag}
 }
 
 // Time returns the time.
@@ -102,7 +103,7 @@ func (t *Timetag) ExpiresIn() time.Duration {
 // significant bit is a special case meaning "immediately."
 func timeToTimetag(time time.Time) (timetag uint64) {
 	timetag = uint64((secondsFrom1900To1970 + time.Unix()) << 32)
-	return (timetag + uint64(uint32(time.Nanosecond())))
+	return timetag + uint64(uint32(time.Nanosecond()))
 }
 
 // timetagToTime converts the given timetag to a time object.
