@@ -6,6 +6,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/validation"
 	"fyne.io/fyne/v2/widget"
+	"runtime"
 )
 
 func gui() {
@@ -50,6 +51,7 @@ func gui() {
 		oscInput.Enable()
 		oscAddr.Enable()
 		form.Refresh()
+		runtime.GC()
 	}
 	form.OnSubmit = func() {
 		clipPath = path.Text
@@ -66,6 +68,7 @@ func gui() {
 		oscInput.Disable()
 		oscAddr.Disable()
 		form.Refresh()
+		runtime.GC()
 	}
 
 	w.SetContent(container.NewGridWithRows(2, form, infoLabel))

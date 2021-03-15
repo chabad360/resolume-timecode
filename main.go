@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"github.com/chabad360/resolume-timecode/osc"
 	"github.com/go-playground/pure/v5"
-
+	"github.com/pkg/profile"
 	"net"
 	"net/http"
 	"nhooyr.io/websocket"
@@ -30,7 +30,7 @@ var (
 	fs embed.FS
 
 	p          = pure.New()
-	httpServer = &http.Server{Addr: ":" + httpPort, Handler: p.Serve()}
+	httpServer *http.Server
 	conn       net.PacketConn
 	wg         sync.WaitGroup
 	running    bool
@@ -40,8 +40,8 @@ var (
 )
 
 func main() {
-	//p := profile.Start(profile.MemProfile, profile.ProfilePath("."), profile.NoShutdownHook)
-	//defer p.Stop()
+	pr := profile.Start(profile.MemProfile, profile.ProfilePath("."), profile.NoShutdownHook)
+	defer pr.Stop()
 
 	message.Append("?")
 
@@ -84,6 +84,8 @@ func serverStart() error {
 		}
 	}()
 
+	httpServer = &http.Server{Addr: ":" + httpPort, Handler: p.Serve()}
+
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -99,7 +101,9 @@ func serverStop() {
 	broadcast.Publish("/stop ")
 	ctx, c := context.WithTimeout(context.Background(), time.Second*3)
 	err := httpServer.Shutdown(ctx)
-	conn.Close()
+	if conn != nil {
+		conn.Close()
+	}
 	if err != nil {
 		httpServer.Close()
 	}
@@ -169,7 +173,7 @@ func websocketStart(w http.ResponseWriter, r *http.Request) {
 			c.Close(websocket.StatusNormalClosure, "")
 			return
 		case m := <-l:
-			err = c.Write(ctx, websocket.MessageText, []byte(m.(string)))
+			err = c.Write(ctx, websocket.MessageText, []byte(m))
 			if err != nil {
 				//log.Println(err)
 				return

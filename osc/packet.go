@@ -6,8 +6,11 @@ import (
 	"encoding/binary"
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 )
+
+var str strings.Builder
 
 // Packet is the interface for Message and Bundle.
 type Packet interface {
@@ -103,38 +106,29 @@ func (msg *Message) String() string {
 		return ""
 	}
 
-	tags, err := msg.TypeTags()
-	if err != nil {
-		return ""
-	}
+	tags, _ := msg.TypeTags()
 
-	formatString := "%s %s"
-	var args []interface{}
-	args = append(args, msg.Address)
-	args = append(args, tags)
+	str.Reset()
+	fmt.Fprintf(&str, "%s %s", msg.Address, tags)
 
 	for _, arg := range msg.Arguments {
 		switch arg.(type) {
 		case bool, int32, int64, float32, float64, string:
-			formatString += " %v"
-			args = append(args, arg)
+			fmt.Fprintf(&str, " %v", arg)
 
 		case nil:
-			formatString += " %s"
-			args = append(args, "Nil")
+			str.WriteString(" Nil")
 
 		case []byte:
-			formatString += " %s"
-			args = append(args, "blob")
+			str.WriteString(" blob")
 
 		case Timetag:
-			formatString += " %d"
 			timeTag := arg.(Timetag)
-			args = append(args, timeTag.TimeTag())
+			fmt.Fprintf(&str, " %d", timeTag.TimeTag())
 		}
 	}
 
-	return fmt.Sprintf(formatString, args...)
+	return str.String()
 }
 
 // CountArguments returns the number of arguments.

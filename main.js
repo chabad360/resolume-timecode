@@ -29,7 +29,7 @@ function maxAppend(array, value, limit) {
 function average(array){
     let f = 0;
     for (let i = 0; i < array.length; i++) {
-        f = f + array[i];
+        f += array[i];
     }
     return Math.trunc(f / array.length);
 }
@@ -68,7 +68,7 @@ function procPath(data) {
 }
 
 function procName(data) {
-    data = data.replace(path+"/name ,s ", "");
+    data = data.replace("/name ,s ", "");
     if (data !== clipName) {
         clipName = data;
         reset();
@@ -87,8 +87,8 @@ function reset() {
 }
 
 function procPos(msg, timeNow) {
-    let pos = mult * parseFloat(msg.replace(path+"/transport/position ,f ", ""));
-    if (pos < 5) {
+    let pos = mult * parseFloat(msg.replace("/transport/position ,f ", ""));
+    if (pos < 50) {
         reset();
     }
 

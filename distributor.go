@@ -3,18 +3,18 @@ package main
 import "sync"
 
 type Distributor struct {
-	l map[string]chan interface{}
+	l map[string]chan string
 	m sync.RWMutex
 }
 
 func New() *Distributor {
 	return &Distributor{
-		l: map[string]chan interface{}{},
+		l: map[string]chan string{},
 	}
 }
 
-func (d *Distributor) Listen(key string) <-chan interface{} {
-	ch := make(chan interface{})
+func (d *Distributor) Listen(key string) <-chan string {
+	ch := make(chan string)
 	d.m.Lock()
 	defer d.m.Unlock()
 
@@ -37,7 +37,7 @@ func (d *Distributor) Close(key string) {
 	delete(d.l, key)
 }
 
-func (d *Distributor) Publish(v interface{}) {
+func (d *Distributor) Publish(v string) {
 	d.m.RLock()
 	defer d.m.RUnlock()
 
