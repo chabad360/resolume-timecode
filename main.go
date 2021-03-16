@@ -5,7 +5,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
-	"github.com/chabad360/resolume-timecode/osc"
+	"github.com/chabad360/go-osc/osc"
 	"github.com/go-playground/pure/v5"
 	"net"
 	"net/http"
