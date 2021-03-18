@@ -1,12 +1,9 @@
 "use strict";
 
 const socket    = new WebSocket('ws://'+location.hostname+(location.port ? ':'+location.port: '')+'/ws');
-
 const timecode  = document.getElementById("timecode");
 const ms        = document.getElementById("ms");
 const mult      = 10000000000;
-
-let path = "/composition/selectedclip"
 
 let clipName    = "";
 let timePrev    = Date();
@@ -48,8 +45,6 @@ socket.addEventListener('message', function (event) {
         procPos(data, timeNow);
     } else if (data.includes("/name ")) {
         procName(data);
-    } else if (data.includes("/path ")) {
-        procPath(data);
     } else if (data.includes("/refresh ")) {
         location.reload();
     } else if (data.includes("/stop ")) {
@@ -59,13 +54,8 @@ socket.addEventListener('message', function (event) {
 
 socket.addEventListener('close', function () {
     timecode.innerHTML = "Server Stopped";
-
+    ms.innerHTML       = 'Clip Length: 0.000s'
 })
-
-function procPath(data) {
-    path = data.replace("/path ,s ", "");
-    reset();
-}
 
 function procName(data) {
     data = data.replace("/name ,s ", "");
@@ -83,13 +73,13 @@ function reset() {
     estSizeBuffer      = [];
 
     timecode.innerHTML = '-000:00:00.000'
-    ms.innerHTML       = '0.000'
+    ms.innerHTML       = 'Clip Length: 0.000s'
 }
 
 function procPos(msg, timeNow) {
     let pos = mult * parseFloat(msg.replace("/transport/position ,f ", ""));
     if (pos < 50) {
-        reset();
+        posPrev = 0;
     }
 
     let currentPosInterval  = pos - posPrev;
@@ -103,8 +93,8 @@ function procPos(msg, timeNow) {
         return;
     }
 
-    posIntervalBuffer    = maxAppend(posIntervalBuffer, currentPosInterval, 100);
-    timeIntervalBuffer   = maxAppend(timeIntervalBuffer, currentTimeInterval, 100);
+    posIntervalBuffer  = maxAppend(posIntervalBuffer, currentPosInterval, 100);
+    timeIntervalBuffer = maxAppend(timeIntervalBuffer, currentTimeInterval, 100);
 
     let posInterval  = average(posIntervalBuffer);
     let timeInterval = average(timeIntervalBuffer);
@@ -132,6 +122,6 @@ function procPos(msg, timeNow) {
         timeActual.getUTCMinutes().toString().padStart(2, '0')}:${
         timeActual.getUTCSeconds().toString().padStart(2, '0')}.${
         timeActual.getUTCMilliseconds().toString().padStart(3, '0')}`;
-    ms.innerHTML = `${average(estSizeBuffer)/1000}s`;
+    ms.innerHTML = `Clip Length: ${average(estSizeBuffer)/1000}s`;
     // console.log(`pos: ${pos}\taverage: ${a}\ti: ${interval}\ttime: ${d}\ttimeAverage: ${ta}\ttimeActual: ${t}\ttimeTotal: ${average(totalArray)}\ttimeLeft: ${timeLeft}`);
 }
