@@ -10,11 +10,12 @@ _This is the server end of things, doesn't need to be run on the same device as 
 
 ## How to use
 
-1. Open _resolume-timecode.exe_ and make sure that all the information in there is set correctly.
-2. Click _Start Server_
-3. Open your web browser to `http://localhost:8080` (or the IP of the device that's running this app plus `:8080`).
-4. Start playing a clip in Resolume.
-5. Profit.
+1. Download the [latest release](https://github.com/chabad360/resolume-timecode/releases)
+2. Open _resolume-timecode.exe_ and make sure that all the information in there is set correctly.
+3. Click _Start Server_
+4. Open your web browser to `http://localhost:8080` (or the IP of the device that's running this app plus `:8080`).
+5. Start playing a clip in Resolume.
+6. Profit.
 
 Note: The precision should be within a second (ususally less), if it feels off double check that the clip legnth is correct.
 
