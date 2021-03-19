@@ -41,7 +41,7 @@ translating the UDP packets to websocket. There is also a bit of processing done
   I just haven't gotten to implementing it yet.
 - If a clip loops, the counter will stop. This is because I haven't yet figured out a good way to determine that a clip has looped,
   without causing other issues.
-- Uses 60mb of RAM. Sorry, can't do much about that, at least it's better than a electron app.  
+- Uses around 60-70mb of RAM. Sorry, can't do much about that, at least it's better than a electron app.  
 
 ## Building
 
