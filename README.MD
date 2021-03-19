@@ -31,6 +31,10 @@ Due to certain inconsistencies in the way this information is outputted, it's no
 
 For the exact algorithm, check [main.js](https://github.com/chabad360/resolume-timecode/blob/master/main.js).
 
+Anyways, because we're running in a browser, we can't actually interact with OSC, so this application also acts a proxy,
+translating the UDP packets to websocket. There is also a bit of processing done here to reduce the load on the device
+(it's around 300 messages a second, so the less the better).
+
 ## Known Issues
 
 - Playing a clip backwards just doesn't work. This is because of the way certain math is done, there is a relatively simple fix
