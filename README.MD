@@ -16,6 +16,8 @@ _This is the server end of things, doesn't need to be run on the same device as 
 4. Start playing a clip in Resolume.
 5. Profit.
 
+Note: The precision should be within a second (ususally less), if it feels off double check that the clip legnth is correct.
+
 ## Motivation
 
 When using Resolume for events where longer clips were being played, I found it annoying that the only way to find out
