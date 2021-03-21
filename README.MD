@@ -30,11 +30,12 @@ Resolume outputs the position of the clip head through OSC, by calculating how m
 and the previous one, it's possible to calculate how long the clip is, and therefore how much time is left.
 Due to certain inconsistencies in the way this information is outputted, it's not as simple as it sounds.
 
-For the exact algorithm, check [main.js](https://github.com/chabad360/resolume-timecode/blob/master/main.js).
+For the exact algorithm, check [main.js](https://github.com/chabad360/resolume-timecode/blob/master/main.js) 
+(specifically, [`procPos()`](https://github.com/chabad360/resolume-timecode/blob/master/main.js#L79)).
 
-Anyways, because we're running in a browser, we can't actually interact with OSC, so this application also acts a proxy,
-translating the UDP packets to websocket. There is also a bit of processing done here to reduce the load on the device
-(it's around 300 messages a second, so the less the better).
+Anyways, because we're running in a browser, we can't actually interact with OSC (as it works over the network),
+so this application also acts a proxy, translating the UDP packets to websocket.
+There is also a bit of processing done here to reduce the load on the device (it's around 300 messages a second, so the less the better).
 
 ## Known Issues
 
@@ -42,7 +43,7 @@ translating the UDP packets to websocket. There is also a bit of processing done
   I just haven't gotten to implementing it yet.
 - If a clip loops, the counter will stop. This is because I haven't yet figured out a good way to determine that a clip has looped,
   without causing other issues.
-- Uses around 60-70mb of RAM. Sorry, can't do much about that, at least it's better than a electron app.  
+- Uses around 60-70mb of RAM. Sorry, can't do much about that, at least it's better than a electron app.
 
 ## Building
 
