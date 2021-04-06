@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"embed"
 	"errors"
@@ -36,7 +37,7 @@ var (
 	wg         sync.WaitGroup
 	running    bool
 	message    = &osc.Message{Arguments: []interface{}{"?"}}
-	client     = &osc.Client{IP: OSCPort, Port: 7000}
+	client     *net.UDPConn
 	msg        string
 )
 
@@ -60,8 +61,14 @@ func serverStart() error {
 	}
 
 	port, _ := strconv.Atoi(OSCPort)
-	client.IP = OSCAddr
-	client.Port = port
+	addr, err := net.ResolveUDPAddr("udp", fmt.Sprintf("%s:%d", OSCAddr, port))
+	if err != nil {
+		return err
+	}
+	client, err = net.DialUDP("udp", nil, addr)
+	if err != nil {
+		return err
+	}
 
 	conn, err = net.ListenPacket("udp", ":"+OSCOutPort)
 	if err != nil {
@@ -73,13 +80,19 @@ func serverStart() error {
 
 	wg.Add(1)
 	go func() {
+		b := new(bytes.Buffer)
+
 		for !running {
 		}
 		for running {
 			time.Sleep(time.Second)
 			message.Address = fmt.Sprintf("%s/name", clipPath)
-			client.Send(message)
+			b.Reset()
+			message.LightMarshalBinary(b)
+			client.Write(b.Bytes())
 		}
+
+		client.Close()
 		wg.Done()
 	}()
 
