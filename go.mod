@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	fyne.io/fyne/v2 v2.0.1
-	github.com/chabad360/go-osc v0.0.0-20210322175240-af16c75b9e7e
+	github.com/chabad360/go-osc v0.0.0-20210502221644-78bb5c280252
 	github.com/go-playground/pure/v5 v5.2.0
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect

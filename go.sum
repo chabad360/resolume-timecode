@@ -4,9 +4,12 @@ github.com/Kodeworks/golang-image-ico v0.0.0-20141118225523-73f0f4cfade9/go.mod 
 github.com/akavel/rsrc v0.8.0/go.mod h1:uLoCtb9J+EyAqh+26kdrTgmzRBFPGOolLWKpdxkKq+c=
 github.com/chabad360/go-osc v0.0.0-20210322175240-af16c75b9e7e h1:GXnYp7iow1hTpfaZ2p1rfa0Ux1TwcRRqD+WbguEmXzY=
 github.com/chabad360/go-osc v0.0.0-20210322175240-af16c75b9e7e/go.mod h1:h7X1kVV7u9k4dYZqdIDRnQ0x8PjidaYwNH09Y2v5Es0=
+github.com/chabad360/go-osc v0.0.0-20210502221644-78bb5c280252 h1:hlYds+0heYHhuqaRya/w9KvukaRKP5PGBZOfkKANSVo=
+github.com/chabad360/go-osc v0.0.0-20210502221644-78bb5c280252/go.mod h1:qA5AnCwcSVjK/TkUCPamRqEpHf/u5oWbGFtB/ddfoa0=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/dvyukov/go-fuzz v0.0.0-20210103155950-6a8e9d1f2415/go.mod h1:11Gm+ccJnvAhCNLlf5+cS9KjtbaD5I5zaZpFMsTHWTw=
 github.com/fredbi/uri v0.0.0-20181227131451-3dcfdacbaaf3 h1:FDqhDm7pcsLhhWl1QtD8vlzI4mm59llRvNzrFg6/LAA=
 github.com/fredbi/uri v0.0.0-20181227131451-3dcfdacbaaf3/go.mod h1:CzM2G82Q9BDUvMTGHnXf/6OExw/Dz2ivDj48nVg7Lg8=
 github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWoS4=
