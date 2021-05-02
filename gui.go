@@ -31,12 +31,17 @@ func gui() {
 	oscAddr.SetText(OSCAddr)
 	oscAddr.Validator = validation.NewRegexp(`^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$`, "not a valid IP address")
 
+	httpPortField := widget.NewEntry()
+	httpPortField.SetText(httpPort)
+	httpPortField.Validator = validation.NewRegexp(`^[0-9]*$`, "not a valid port")
+
 	form := &widget.Form{
 		Items: []*widget.FormItem{
 			{Text: "Path", Widget: path, HintText: "OSC Path for clip to listen to"},
 			{Text: "OSC Input Port", Widget: oscInput, HintText: "OSC Input port (usually 7000)"},
 			{Text: "OSC Output Port", Widget: oscOutput, HintText: "OSC Output port (usually 7001) Note: If you have multiple services using Resolume OSC make use the correct broadcast address."},
 			{Text: "OSC Host Address", Widget: oscAddr, HintText: "IP address of device that's running Resolume (make sure to open the OSC input port in your firewall)"},
+			{Text: "HTTP Server Port", Widget: httpPortField, HintText: "The port to run the browser interface on"},
 		},
 		SubmitText: "Start Server",
 		CancelText: "Stop Server",
@@ -58,6 +63,7 @@ func gui() {
 		OSCOutPort = oscOutput.Text
 		OSCPort = oscInput.Text
 		OSCAddr = oscAddr.Text
+		httpPort = httpPortField.Text
 		infoLabel.Text = "Starting Server"
 
 		serverStart()
