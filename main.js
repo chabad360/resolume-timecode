@@ -1,19 +1,23 @@
 "use strict";
 
-const socket    = new WebSocket('ws://'+location.hostname+(location.port ? ':'+location.port: '')+'/ws');
-const timecodehours  = document.getElementById("timecode-hours");
-const timecodeminutes  = document.getElementById("timecode-minutes");
-const timecodeseconds  = document.getElementById("timecode-seconds");
-const timecodems  = document.getElementById("timecode-ms");
-const timecodeclipname = document.getElementById("clipname")
+const socket            = new WebSocket('ws://'+location.hostname+(location.port ? ':'+location.port: '')+'/ws');
+const timecodehours     = document.getElementById("timecode-hours");
+const timecodeminutes   = document.getElementById("timecode-minutes");
+const timecodeseconds   = document.getElementById("timecode-seconds");
+const timecodems        = document.getElementById("timecode-ms");
+const timecodeclipname  = document.getElementById("clipname")
+const table             = document.getElementById('table')
+const tableborder       = document.getElementById('tableborder')
 
-const cliplength        = document.getElementById("ms");
-const mult      = 10000000000;
+const cliplength    = document.getElementById("ms");
+const status = document.getElementById("status")
+const mult          = 10000000000;
 
 let clipName    = "";
 let timePrev    = Date();
 let posPrev     = 0;
 let samples     = 0;
+
 let posIntervalBuffer   = [];
 let timeIntervalBuffer  = [];
 let estSizeBuffer       = [];
@@ -45,6 +49,7 @@ function within(original, newNum, percent) {
 socket.addEventListener('message', function (event) {
     let timeNow = new Date();
     let data    = event.data.toString();
+    status.innerHTML = "Server Running";
 
     if (data.includes("/transport/position ")) {
         procPos(data, timeNow);
@@ -58,17 +63,17 @@ socket.addEventListener('message', function (event) {
 });
 
 socket.addEventListener('close', function () {
-    // timecode.innerHTML = "Server Stopped";
+    status.innerHTML = "Server Stopped";
     timecodehours.innerHTML = "00";
     timecodeminutes.innerHTML = "00";
     timecodeseconds.innerHTML = "00";
     timecodems.innerHTML = "000";
-    cliplength.innerHTML = 'Clip Length: 0.000s'
+    cliplength.innerHTML = '0.000s'
 })
 
 function procName(data) {
     data = data.replace("/name ,s ", "");
-    timecodeclipname.innerHTML = "Clip Name: " + data;
+    timecodeclipname.innerHTML = data;
     if (data !== clipName) {
         clipName = data;
         reset();
@@ -87,7 +92,7 @@ function reset() {
     timecodeminutes.innerHTML = '00';
     timecodeseconds.innerHTML = '00';
     timecodems.innerHTML = '000';
-    cliplength.innerHTML       = 'Clip Length: 0.000s';
+    cliplength.innerHTML       = '0.000s';
 }
 
 function procPos(msg, timeNow) {
@@ -135,6 +140,13 @@ function procPos(msg, timeNow) {
     timecodeminutes.innerHTML = timeActual.getUTCMinutes().toString().padStart(2, '0');
     timecodeseconds.innerHTML = timeActual.getUTCSeconds().toString().padStart(2, '0');
     timecodems.innerHTML = timeActual.getUTCMilliseconds().toString().padStart(3, '0');
-    cliplength.innerHTML = `Clip Length: ${average(estSizeBuffer)/1000}s`;
+    if (timeActual.getUTCSeconds() <= 10) {
+        table.style.color = "#ff4545";
+        tableborder.style.borderColor = "#ff4545";
+    } else {
+        table.style.color = "#45ff45";
+        tableborder.style.borderColor = "#4b5457";
+    }
+    cliplength.innerHTML = `${average(estSizeBuffer)/1000}s`;
     // console.log(`pos: ${pos}\taverage: ${a}\ti: ${interval}\ttime: ${d}\ttimeAverage: ${ta}\ttimeActual: ${t}\ttimeTotal: ${average(totalArray)}\ttimeLeft: ${timeLeft}`);
 }

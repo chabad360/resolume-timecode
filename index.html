@@ -30,11 +30,12 @@
         }
     </style>
 </head>
+
 <body>
 <p style="font-size: 2em;">Timecode Monitor</p>
-<div style="border-width: 6px; border-color: #4b5457; border-radius: 40px; border-style: solid; background-color: #111417; margin: 3em; color: #45ff45;">
-    <p style="font-size: 1.5em; margin-bottom:-.5em;" id="clipname">Clip Name: None</p>
-    <table style="margin-left: auto; margin-right:auto; padding-bottom: 10px;">
+<div id="tableborder" style="border-width: 6px; border-color: #4b5457; border-radius: 40px; border-style: solid; background-color: #111417; margin: 3em;">
+    <p style="font-size: 1.5em; margin-bottom:-.5em;" >Clip Name: <strong id="clipname">None</strong></p>
+    <table style="margin-left: auto; margin-right:auto; padding-bottom: 10px; color: #45ff45;" id="table">
         <tr style="font-size:10vw;">
             <td class="minus number">-</td>
             <td class="hours number" id="timecode-hours">00</td>
@@ -57,9 +58,11 @@
         </tr>
     </table>
 </div>
+
 <details style="text-align: left; margin-left: 3em;">
     <summary style="font-size:1.25em;">Advanced Settings</summary>
-    <div id="ms"></div>
+    <div>Clip Length: <strong id="ms"></strong></div>
+    <div>Server Status: <strong id="status"></strong></div>
     <br/>
     <input type="checkbox" id="checkbox-minus" checked onclick="showHide()">
     <label for="checkbox-minus">Show minus</label>
@@ -72,6 +75,7 @@
     <br />
     <p>Checkout this tool at <a href="https://github.com/chabad360/resolume-timecode">chabad360/resolume-timecode</a></p>
 </details>
+
 <script src="main.js"></script>
 <script type="text/javascript">
     const checkboxminus = document.getElementById("checkbox-minus");
