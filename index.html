@@ -1,14 +1,126 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Resolume Timecode</title>
+    <title>Timecode Monitor</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #000000;
+            color: #FDFBF7;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 1em;
+            text-align:center;
+        }
+
+        a {
+            color: #2494ff;
+        }
+
+        label {
+            margin-right: 1em;
+        }
+
+        .number {
+            font-weight: 100;
+        }
+    </style>
 </head>
 <body>
-<div id="timecode" style="font-family:monospace;font-size:10vw"></div>
-<div id="ms" style="font-family:monospace;font-size:2vw"></div>
-<br/>
-<div style="font-family:monospace;font-size:1vw"><a href="https://github.com/chabad360/resolume-timecode">chabad360/resolume-timecode</a></div>
+<p style="font-size: 2em;">Timecode Monitor</p>
+<div style="border-width: 6px; border-color: #4b5457; border-radius: 40px; border-style: solid; background-color: #111417; margin: 3em; color: #45ff45;">
+    <p style="font-size: 1.5em; margin-bottom:-.5em;" id="clipname">Clip Name: None</p>
+    <table style="margin-left: auto; margin-right:auto; padding-bottom: 10px;">
+        <tr style="font-size:10vw;">
+            <td class="minus number">-</td>
+            <td class="hours number" id="timecode-hours">00</td>
+            <td class="hours">:</td>
+            <td class="number" id="timecode-minutes">00</td>
+            <td>:</td>
+            <td class="number" id="timecode-seconds">00</td>
+            <td class="ms">.</td>
+            <td class="ms number" id="timecode-ms">000</td>
+        </tr>
+        <tr style="font-weight: 600;">
+            <td class="minus"></td>
+            <td class="hours">Hours</td>
+            <td class="hours" ></td>
+            <td>Minutes</td>
+            <td></td>
+            <td>Seconds</td>
+            <td class="ms" ></td>
+            <td class="ms">Milliseconds</td>
+        </tr>
+    </table>
+</div>
+<details style="text-align: left; margin-left: 3em;">
+    <summary style="font-size:1.25em;">Advanced Settings</summary>
+    <div id="ms"></div>
+    <br/>
+    <input type="checkbox" id="checkbox-minus" checked onclick="showHide()">
+    <label for="checkbox-minus">Show minus</label>
+
+    <input type="checkbox" id="checkbox-hours" checked onclick="showHide()">
+    <label for="checkbox-hours">Show Hours</label>
+
+    <input type="checkbox" id="checkbox-ms" checked onclick="showHide()">
+    <label for="checkbox-ms">Show Milliseconds</label>
+    <br />
+    <p>Checkout this tool at <a href="https://github.com/chabad360/resolume-timecode">chabad360/resolume-timecode</a></p>
+</details>
 <script src="main.js"></script>
+<script type="text/javascript">
+    const checkboxminus = document.getElementById("checkbox-minus");
+    const checkboxhours = document.getElementById("checkbox-hours");
+    const checkboxms = document.getElementById("checkbox-ms");
+
+    let minus = document.getElementsByClassName("minus");
+    let hours = document.getElementsByClassName("hours");
+    let ms = document.getElementsByClassName("ms");
+
+    function showHide() {
+        if (checkboxminus.checked == false) {
+            for(i = 0; i < minus.length; i++) {
+                minus[i].style.visibility = 'hidden';
+                minus[i].style.display = 'none';
+            }
+        } else {
+            for(i = 0; i < minus.length; i++) {
+                minus[i].style.visibility = 'visible';
+                minus[i].style.display = 'revert';
+            }
+        }
+
+        if (checkboxhours.checked == false) {
+            for(i = 0; i < hours.length; i++) {
+                hours[i].style.visibility = 'hidden';
+                hours[i].style.display = 'none';
+            }
+        } else {
+            for(i = 0; i < hours.length; i++) {
+                hours[i].style.visibility = 'visible';
+                hours[i].style.display = 'revert';
+            }
+        }
+
+        if (checkboxms.checked == false) {
+            for(i = 0; i < ms.length; i++) {
+                ms[i].style.visibility = 'hidden';
+                ms[i].style.display = 'none';
+            }
+        } else {
+            for(i = 0; i < ms.length; i++) {
+                ms[i].style.visibility = 'visible';
+                ms[i].style.display = 'revert';
+            }
+        }
+    }
+
+    showHide()
+</script>
 </body>
 </html>

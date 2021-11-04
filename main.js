@@ -1,8 +1,13 @@
 "use strict";
 
 const socket    = new WebSocket('ws://'+location.hostname+(location.port ? ':'+location.port: '')+'/ws');
-const timecode  = document.getElementById("timecode");
-const ms        = document.getElementById("ms");
+const timecodehours  = document.getElementById("timecode-hours");
+const timecodeminutes  = document.getElementById("timecode-minutes");
+const timecodeseconds  = document.getElementById("timecode-seconds");
+const timecodems  = document.getElementById("timecode-ms");
+const timecodeclipname = document.getElementById("clipname")
+
+const cliplength        = document.getElementById("ms");
 const mult      = 10000000000;
 
 let clipName    = "";
@@ -53,12 +58,17 @@ socket.addEventListener('message', function (event) {
 });
 
 socket.addEventListener('close', function () {
-    timecode.innerHTML = "Server Stopped";
-    ms.innerHTML       = 'Clip Length: 0.000s'
+    // timecode.innerHTML = "Server Stopped";
+    timecodehours.innerHTML = "00";
+    timecodeminutes.innerHTML = "00";
+    timecodeseconds.innerHTML = "00";
+    timecodems.innerHTML = "000";
+    cliplength.innerHTML = 'Clip Length: 0.000s'
 })
 
 function procName(data) {
     data = data.replace("/name ,s ", "");
+    timecodeclipname.innerHTML = "Clip Name: " + data;
     if (data !== clipName) {
         clipName = data;
         reset();
@@ -72,8 +82,12 @@ function reset() {
     timeIntervalBuffer = [];
     estSizeBuffer      = [];
 
-    timecode.innerHTML = '-000:00:00.000'
-    ms.innerHTML       = 'Clip Length: 0.000s'
+    // timecode.innerHTML = '-000:00:00.000';
+    timecodehours.innerHTML = '00';
+    timecodeminutes.innerHTML = '00';
+    timecodeseconds.innerHTML = '00';
+    timecodems.innerHTML = '000';
+    cliplength.innerHTML       = 'Clip Length: 0.000s';
 }
 
 function procPos(msg, timeNow) {
@@ -117,11 +131,10 @@ function procPos(msg, timeNow) {
     timePrev = timeNow;
 
     let timeActual = new Date(t);
-    timecode.innerHTML = `-${
-        timeActual.getUTCHours().toString().padStart(3, '0')}:${
-        timeActual.getUTCMinutes().toString().padStart(2, '0')}:${
-        timeActual.getUTCSeconds().toString().padStart(2, '0')}.${
-        timeActual.getUTCMilliseconds().toString().padStart(3, '0')}`;
-    ms.innerHTML = `Clip Length: ${average(estSizeBuffer)/1000}s`;
+    timecodehours.innerHTML = timeActual.getUTCHours().toString().padStart(3, '0');
+    timecodeminutes.innerHTML = timeActual.getUTCMinutes().toString().padStart(2, '0');
+    timecodeseconds.innerHTML = timeActual.getUTCSeconds().toString().padStart(2, '0');
+    timecodems.innerHTML = timeActual.getUTCMilliseconds().toString().padStart(3, '0');
+    cliplength.innerHTML = `Clip Length: ${average(estSizeBuffer)/1000}s`;
     // console.log(`pos: ${pos}\taverage: ${a}\ti: ${interval}\ttime: ${d}\ttimeAverage: ${ta}\ttimeActual: ${t}\ttimeTotal: ${average(totalArray)}\ttimeLeft: ${timeLeft}`);
 }
