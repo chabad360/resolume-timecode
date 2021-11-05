@@ -60,6 +60,7 @@ builds:
     ldflags:
       - -s -w
       - -X main.version={{.Version}}
+      - -H=windowsgui
     mod_timestamp: '{{ .CommitTimestamp }}'
     hooks:
       post: upx {{ .Path }}
