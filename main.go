@@ -21,11 +21,11 @@ var (
 	broadcast = &Distributor{
 		l: map[string]chan []byte{},
 	}
-	OSCOutPort string = "7001"
-	OSCPort    string = "7000"
-	OSCAddr    string = "127.0.0.1"
-	httpPort   string = "8080"
-	clipPath   string = "/composition/selectedclip"
+	OSCOutPort = "7001"
+	OSCPort    = "7000"
+	OSCAddr    = "127.0.0.1"
+	httpPort   = "8080"
+	clipPath   = "/composition/selectedclip"
 
 	//go:embed index.html
 	//go:embed main.js
