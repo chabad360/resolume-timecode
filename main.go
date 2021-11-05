@@ -166,6 +166,10 @@ func listenOSC(conn net.PacketConn, wg *sync.WaitGroup) {
 	}
 }
 
+func pushClientMessage(message string) {
+	broadcast.Publish([]byte("/message ,s " + message))
+}
+
 func websocketStart(w http.ResponseWriter, r *http.Request) {
 	c, err := websocket.Accept(w, r, nil)
 	if err != nil {

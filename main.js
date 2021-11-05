@@ -6,11 +6,12 @@ const timecodehours     = document.getElementById("timecode-hours");
 const timecodeminutes   = document.getElementById("timecode-minutes");
 const timecodeseconds   = document.getElementById("timecode-seconds");
 const timecodems        = document.getElementById("timecode-ms");
-const timecodeclipname  = document.getElementById("clipname")
-const table             = document.getElementById('table')
-const tableborder       = document.getElementById('tableborder')
+const timecodeclipname  = document.getElementById("clipname");
+const table             = document.getElementById('table');
+const tableborder       = document.getElementById('tableborder');
 const cliplength        = document.getElementById("ms");
-const status            = document.getElementById("status")
+const status            = document.getElementById("status");
+const message          = document.getElementById("msg");
 
 const mult      = 10000000000; // This constant is used to avoid JSs famous floating point pitfalls
 
@@ -51,6 +52,8 @@ socket.addEventListener('message', function (event) {
         procPos(data, timeNow);
     } else if (data.includes("/name ")) {
         procName(data);
+    } else if (data.includes("/message ")) {
+        procMsg(data);
     } else if (data.includes("/refresh ")) {
         location.reload();
     } else if (data.includes("/stop ")) {
@@ -92,6 +95,18 @@ function reset() {
     timecodeseconds.innerHTML   = '00';
     timecodems.innerHTML        = '000';
     cliplength.innerHTML        = '0.000s';
+}
+
+async function procMsg(data) {
+    message.innerHTML = data.replace("/message ,s ", "");
+    message.style.color = "#ff4545"
+    await new Promise(r => setTimeout(r, 500));
+    message.style.color = "#FDFBF7"
+    await new Promise(r => setTimeout(r, 500));
+    message.style.color = "#ff4545"
+    await new Promise(r => setTimeout(r, 500));
+    message.style.color = "#FDFBF7"
+    await new Promise(r => setTimeout(r, 500));
 }
 
 function procPos(msg, timeNow) {
