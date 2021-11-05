@@ -16,7 +16,7 @@ var (
 
 func gui() {
 	a := app.New()
-	w := a.NewWindow("Resolume Timecode Server")
+	w := a.NewWindow("Timecode Monitor Server")
 
 	infoLabel := widget.NewLabel("Server Stopped")
 
