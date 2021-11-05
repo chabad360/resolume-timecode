@@ -1,6 +1,6 @@
 "use strict";
 
-const socket            = new WebSocket('ws://'+location.hostname+(location.port ? ':'+location.port: '')+'/ws');
+const socket            = new WebSocket(`ws://${location.host}/ws`);
 const timecodehours     = document.getElementById("timecode-hours");
 const timecodeminutes   = document.getElementById("timecode-minutes");
 const timecodeseconds   = document.getElementById("timecode-seconds");
@@ -37,7 +37,7 @@ function average(array){
 
 
 function within(original, newNum, percent) {
-    let p = original / 100 * percent;
+    let p = (original / 100) * percent;
     return !((newNum > original + p || newNum < original - p) && original !== 0);
 }
 
