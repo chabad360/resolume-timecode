@@ -86,42 +86,24 @@
     let hours = document.getElementsByClassName("hours");
     let ms = document.getElementsByClassName("ms");
 
+    function hide(elem) {
+        for(i = 0; i < elem.length; i++) {
+            elem[i].style.visibility = 'hidden';
+            elem[i].style.display = 'none';
+        }
+    }
+
+    function show(elem) {
+        for(i = 0; i < elem.length; i++) {
+            elem[i].style.visibility = 'visible';
+            elem[i].style.display = 'revert';
+        }
+    }
+
     function showHide() {
-        if (checkboxminus.checked == false) {
-            for(i = 0; i < minus.length; i++) {
-                minus[i].style.visibility = 'hidden';
-                minus[i].style.display = 'none';
-            }
-        } else {
-            for(i = 0; i < minus.length; i++) {
-                minus[i].style.visibility = 'visible';
-                minus[i].style.display = 'revert';
-            }
-        }
-
-        if (checkboxhours.checked == false) {
-            for(i = 0; i < hours.length; i++) {
-                hours[i].style.visibility = 'hidden';
-                hours[i].style.display = 'none';
-            }
-        } else {
-            for(i = 0; i < hours.length; i++) {
-                hours[i].style.visibility = 'visible';
-                hours[i].style.display = 'revert';
-            }
-        }
-
-        if (checkboxms.checked == false) {
-            for(i = 0; i < ms.length; i++) {
-                ms[i].style.visibility = 'hidden';
-                ms[i].style.display = 'none';
-            }
-        } else {
-            for(i = 0; i < ms.length; i++) {
-                ms[i].style.visibility = 'visible';
-                ms[i].style.display = 'revert';
-            }
-        }
+        checkboxminus.checked === false ? hide(minus) : show(minus)
+        checkboxhours.checked === false ? hide(hours) : show(hours)
+        checkboxms.checked === false ? hide(ms) : show(ms)
     }
 
     showHide()

@@ -8,37 +8,33 @@ const timecodems        = document.getElementById("timecode-ms");
 const timecodeclipname  = document.getElementById("clipname")
 const table             = document.getElementById('table')
 const tableborder       = document.getElementById('tableborder')
+const cliplength        = document.getElementById("ms");
+const status            = document.getElementById("status")
 
-const cliplength    = document.getElementById("ms");
-const status = document.getElementById("status")
-const mult          = 10000000000;
+const mult      = 10000000000;
 
 let clipName    = "";
 let timePrev    = Date();
 let posPrev     = 0;
 let samples     = 0;
 
-let posIntervalBuffer   = [];
-let timeIntervalBuffer  = [];
-let estSizeBuffer       = [];
+let posIntervalBuffer   = [0];
+let timeIntervalBuffer  = [0];
+let estSizeBuffer       = [0];
 
 reset();
 
 function maxAppend(array, value, limit) {
-    array.unshift(value);
-    if (array.length > limit) {
+    if (array.unshift(value) > limit) {
         array.pop();
     }
     return array;
 }
 
 function average(array){
-    let f = 0;
-    for (let i = 0; i < array.length; i++) {
-        f += array[i];
-    }
-    return Math.trunc(f / array.length);
+    return Math.trunc(array.reduce((a,b) => (a+b)) / array.length);
 }
+
 
 function within(original, newNum, percent) {
     let p = original / 100 * percent;
@@ -49,6 +45,7 @@ function within(original, newNum, percent) {
 socket.addEventListener('message', function (event) {
     let timeNow = new Date();
     let data    = event.data.toString();
+
     status.innerHTML = "Server Running";
 
     if (data.includes("/transport/position ")) {
@@ -83,16 +80,15 @@ function procName(data) {
 function reset() {
     samples            = 0;
     posPrev            = 0;
-    posIntervalBuffer  = [];
-    timeIntervalBuffer = [];
-    estSizeBuffer      = [];
+    posIntervalBuffer  = [0];
+    timeIntervalBuffer = [0];
+    estSizeBuffer      = [0];
 
-    // timecode.innerHTML = '-000:00:00.000';
-    timecodehours.innerHTML = '00';
-    timecodeminutes.innerHTML = '00';
-    timecodeseconds.innerHTML = '00';
-    timecodems.innerHTML = '000';
-    cliplength.innerHTML       = '0.000s';
+    timecodehours.innerHTML     = '00';
+    timecodeminutes.innerHTML   = '00';
+    timecodeseconds.innerHTML   = '00';
+    timecodems.innerHTML        = '000';
+    cliplength.innerHTML        = '0.000s';
 }
 
 function procPos(msg, timeNow) {
@@ -112,7 +108,9 @@ function procPos(msg, timeNow) {
         return;
     }
 
+    // maxAppend(posIntervalBuffer, currentPosInterval, 100);
     posIntervalBuffer  = maxAppend(posIntervalBuffer, currentPosInterval, 100);
+    // maxAppend(timeIntervalBuffer, currentTimeInterval, 100);
     timeIntervalBuffer = maxAppend(timeIntervalBuffer, currentTimeInterval, 100);
 
     let posInterval  = average(posIntervalBuffer);
@@ -136,17 +134,18 @@ function procPos(msg, timeNow) {
     timePrev = timeNow;
 
     let timeActual = new Date(t);
-    timecodehours.innerHTML = timeActual.getUTCHours().toString().padStart(3, '0');
-    timecodeminutes.innerHTML = timeActual.getUTCMinutes().toString().padStart(2, '0');
-    timecodeseconds.innerHTML = timeActual.getUTCSeconds().toString().padStart(2, '0');
-    timecodems.innerHTML = timeActual.getUTCMilliseconds().toString().padStart(3, '0');
-    if (timeActual.getUTCSeconds() <= 10) {
+    timecodehours.innerHTML     = timeActual.getUTCHours().toString().padStart(3, '0');
+    timecodeminutes.innerHTML   = timeActual.getUTCMinutes().toString().padStart(2, '0');
+    timecodeseconds.innerHTML   = timeActual.getUTCSeconds().toString().padStart(2, '0');
+    timecodems.innerHTML        = timeActual.getUTCMilliseconds().toString().padStart(3, '0');
+    cliplength.innerHTML        = `${average(estSizeBuffer)/1000}s`;
+
+    if (timeActual.getTime() / 1000 <= 11) {
         table.style.color = "#ff4545";
         tableborder.style.borderColor = "#ff4545";
     } else {
         table.style.color = "#45ff45";
         tableborder.style.borderColor = "#4b5457";
     }
-    cliplength.innerHTML = `${average(estSizeBuffer)/1000}s`;
     // console.log(`pos: ${pos}\taverage: ${a}\ti: ${interval}\ttime: ${d}\ttimeAverage: ${ta}\ttimeActual: ${t}\ttimeTotal: ${average(totalArray)}\ttimeLeft: ${timeLeft}`);
 }
