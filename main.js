@@ -60,11 +60,15 @@ socket.addEventListener('message', function (event) {
 
 socket.addEventListener('close', function () {
     status.innerHTML = "Server Stopped";
+
     timecodehours.innerHTML = "00";
     timecodeminutes.innerHTML = "00";
     timecodeseconds.innerHTML = "00";
     timecodems.innerHTML = "000";
     cliplength.innerHTML = '0.000s'
+
+    table.style.color = "#ff4545";
+    tableborder.style.borderColor = "#ff4545";
 })
 
 function procName(data) {
@@ -131,7 +135,7 @@ function procPos(msg, timeNow) {
     timePrev = timeNow;
 
     let timeActual = new Date(t);
-    timecodehours.innerHTML     = timeActual.getUTCHours().toString().padStart(3, '0');
+    timecodehours.innerHTML     = timeActual.getUTCHours().toString().padStart(2, '0');
     timecodeminutes.innerHTML   = timeActual.getUTCMinutes().toString().padStart(2, '0');
     timecodeseconds.innerHTML   = timeActual.getUTCSeconds().toString().padStart(2, '0');
     timecodems.innerHTML        = timeActual.getUTCMilliseconds().toString().padStart(3, '0');
