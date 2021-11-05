@@ -56,18 +56,7 @@ func gui() {
 		CancelText: "Stop Server",
 	}
 
-	form.OnCancel = func() {
-		infoLabel.Text = "Stopping Server"
-		serverStop()
-		infoLabel.Text = "Server Stopped"
-		form.SubmitText = "Start Server"
-		oscOutput.Enable()
-		oscInput.Enable()
-		oscAddr.Enable()
-		httpPortField.Enable()
-		form.Refresh()
-		runtime.GC()
-	}
+	form.OnCancel = nil
 	form.OnSubmit = func() {
 		clipPath = path.Text
 		OSCOutPort = oscOutput.Text
@@ -94,6 +83,23 @@ func gui() {
 		oscInput.Disable()
 		oscAddr.Disable()
 		httpPortField.Disable()
+
+		form.OnCancel = func() {
+			infoLabel.Text = "Stopping Server"
+			serverStop()
+			infoLabel.Text = "Server Stopped"
+			form.SubmitText = "Start Server"
+			oscOutput.Enable()
+			oscInput.Enable()
+			oscAddr.Enable()
+			httpPortField.Enable()
+
+			form.OnCancel = nil
+
+			form.Refresh()
+			runtime.GC()
+		}
+
 		form.Refresh()
 		runtime.GC()
 	}
