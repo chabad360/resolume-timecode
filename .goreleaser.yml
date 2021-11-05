@@ -1,7 +1,6 @@
 project_name: resolume-timecode
 before:
   hooks:
-    - go mod tidy
     - go mod download
 builds:
 #  - id: darwin-amd64
