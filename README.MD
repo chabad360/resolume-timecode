@@ -2,10 +2,10 @@
 
 View the time left for a playing clip on multiple devices.
 
-![browser demo](demo.png)
+![browser demo](images/demo.png)
 _This screenshot is from firefox on linux, but you can even view this on your phone._
 
-![server demo](demo2.jpg)
+![server demo](images/demo2.jpg)
 _This is the server end of things, doesn't need to be run on the same device as Resolume_
 
 ## How to use
