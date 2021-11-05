@@ -1,6 +1,7 @@
 "use strict";
 
 const socket            = new WebSocket(`ws://${location.host}/ws`);
+
 const timecodehours     = document.getElementById("timecode-hours");
 const timecodeminutes   = document.getElementById("timecode-minutes");
 const timecodeseconds   = document.getElementById("timecode-seconds");
@@ -11,7 +12,7 @@ const tableborder       = document.getElementById('tableborder')
 const cliplength        = document.getElementById("ms");
 const status            = document.getElementById("status")
 
-const mult      = 10000000000;
+const mult      = 10000000000; // This constant is used to avoid JSs famous floating point pitfalls
 
 let clipName    = "";
 let timePrev    = Date();
@@ -35,12 +36,10 @@ function average(array){
     return Math.trunc(array.reduce((a,b) => (a+b)) / array.length);
 }
 
-
 function within(original, newNum, percent) {
     let p = (original / 100) * percent;
     return !((newNum > original + p || newNum < original - p) && original !== 0);
 }
-
 
 socket.addEventListener('message', function (event) {
     let timeNow = new Date();
@@ -108,9 +107,7 @@ function procPos(msg, timeNow) {
         return;
     }
 
-    // maxAppend(posIntervalBuffer, currentPosInterval, 100);
     posIntervalBuffer  = maxAppend(posIntervalBuffer, currentPosInterval, 100);
-    // maxAppend(timeIntervalBuffer, currentTimeInterval, 100);
     timeIntervalBuffer = maxAppend(timeIntervalBuffer, currentTimeInterval, 100);
 
     let posInterval  = average(posIntervalBuffer);
