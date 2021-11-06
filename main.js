@@ -49,13 +49,13 @@ socket.addEventListener('message', function (event) {
 
     status.innerHTML = "Server Running";
 
-    if (data.includes("/transport/position ")) {
+    if (data.includes("/position ,f ")) {
         procPos(data, timeNow);
     } else if (data.includes("direction ,i ")) {
         procDirection(data);
-    } else if (data.includes("/name ")) {
+    } else if (data.includes("/name ,s ")) {
         procName(data);
-    } else if (data.includes("/message ")) {
+    } else if (data.includes("/message ,s ")) {
         procMsg(data);
     } else if (data.includes("/refresh ")) {
         location.reload();
@@ -118,7 +118,7 @@ async function procMsg(data) {
 }
 
 function procPos(msg, timeNow) {
-    let pos = mult * parseFloat(msg.replace("/transport/position ,f ", ""));
+    let pos = mult * parseFloat(msg.split(" ").pop());
 
     if (!directionForward) {
         pos = mult - pos
