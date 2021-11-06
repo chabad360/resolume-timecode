@@ -16,6 +16,7 @@ const message          = document.getElementById("msg");
 const mult      = 10000000000; // This constant is used to avoid JSs famous floating point pitfalls
 
 let clipName    = "";
+let directionForward = true;
 let timePrev    = Date();
 let posPrev     = 0;
 let samples     = 0;
@@ -50,6 +51,8 @@ socket.addEventListener('message', function (event) {
 
     if (data.includes("/transport/position ")) {
         procPos(data, timeNow);
+    } else if (data.includes("direction ,i ")) {
+        procDirection(data);
     } else if (data.includes("/name ")) {
         procName(data);
     } else if (data.includes("/message ")) {
@@ -73,6 +76,11 @@ socket.addEventListener('close', function () {
     table.style.color = "#ff4545";
     tableborder.style.borderColor = "#ff4545";
 })
+
+function procDirection(data) {
+    directionForward = data.substring(data.length - 1) !== "0";
+    reset();
+}
 
 function procName(data) {
     data = data.replace("/name ,s ", "");
@@ -111,6 +119,11 @@ async function procMsg(data) {
 
 function procPos(msg, timeNow) {
     let pos = mult * parseFloat(msg.replace("/transport/position ,f ", ""));
+
+    if (!directionForward) {
+        pos = mult - pos
+    }
+
     if (pos < 50) {
         posPrev = 0;
     }
