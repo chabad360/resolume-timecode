@@ -1,12 +1,12 @@
-# Resolume Timecode Monitor
+<div align="center">
+  <img src="images/logo.png" alt="logo" width="172" /> 
+  <h2>Resolume Timecode Monitor</h2>
+  <p>View the time left for a playing clip on multiple devices.</p>
+</div>
 
-View the time left for a playing clip on multiple devices.
-
-![browser demo](images/demo.png)
-_This screenshot is from firefox on linux, but you can even view this on your phone._
-
-![server demo](images/demo2.jpg)
-_This is the server end of things, doesn't need to be run on the same device as Resolume_
+| <img alt="client" src="images/demo.png" width="70%"/> | <img alt="server" src="images/demo2.jpg" width="120%"/> |
+| :-----: | :----: |
+| _This screenshot is from firefox on linux, but you can even view this on your phone._ | _This is the server end of things, doesn't need to be run on the same device as Resolume_ |
 
 ## How to use
 
@@ -17,7 +17,8 @@ _This is the server end of things, doesn't need to be run on the same device as 
 5. Start playing a clip in Resolume.
 6. Profit.
 
-Note: The precision should be within a second (ususally less), if it feels off double check that the clip legnth is correct.
+Note: The precision should be within a few hundred milliseconds (usually 50ms), if it feels off double check that the clip length 
+(under `Advanced Settings` on the client) is correct.
 
 ## Motivation
 
