@@ -60,10 +60,8 @@ func gui() {
 		OSCAddr = oscAddr.Text
 		httpPort = httpPortField.Text
 
-		if messageField.Text != clientMessage {
-			clientMessage = messageField.Text
-			pushClientMessage()
-		}
+		clientMessage = messageField.Text
+		pushClientMessage()
 
 		infoLabel.SetText("Starting Server")
 
