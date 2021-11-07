@@ -1,0 +1,22 @@
+<svg width="210mm" height="210mm" viewBox="0 0 210 210" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <mask maskUnits="userSpaceOnUse" id="b">
+      <path style="fill:none;fill-rule:evenodd;stroke:#8654c8;stroke-width:147.668;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" transform="matrix(.47052 0 0 .25294 -7.6529544 94.494252)" d="M572.37772 120.33318c142.76451 77.62919 185.77611 263.8269 108.10477 402.67311-90.0509 160.97604-301.59975 208.96977-458.79258 119.11005C42.487351 539.67469-10.493938 302.73087 91.574586 127.20428 206.38562-70.235521 468.75509-128.20836 662.60612-13.916316 878.2911 113.24874 941.25851 401.06621 814.73199 613.23469 675.22431 847.17089 361.94208 915.1352 131.4615 776.36583-120.73059 624.52424-193.69367 285.76433-42.67491 36.975871 121.4938-233.47582 485.74157-311.43917 752.83453-148.16581 872.32798-75.119715 963.56414 39.613249 1009.1133 171.93797"/>
+    </mask>
+    <mask maskUnits="userSpaceOnUse" id="c">
+      <path style="fill:none;fill-rule:evenodd;stroke:#8654c8;stroke-width:147.668;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" transform="matrix(.47052 0 0 .25294 -7.6529544 94.494252)" d="M572.37772 120.33318c142.76451 77.62919 185.77611 263.8269 108.10477 402.67311-90.0509 160.97604-301.59975 208.96977-458.79258 119.11005C42.487351 539.67469-10.493938 302.73087 91.574586 127.20428 206.38562-70.235521 468.75509-128.20836 662.60612-13.916316 878.2911 113.24874 941.25851 401.06621 814.73199 613.23469 675.22431 847.17089 361.94208 915.1352 131.4615 776.36583-120.73059 624.52424-193.69367 285.76433-42.67491 36.975871 121.4938-233.47582 485.74157-311.43917 752.83453-148.16581 872.32798-75.119715 963.56414 39.613249 1009.1133 171.93797"/>
+    </mask>
+    <mask maskUnits="userSpaceOnUse" id="d">
+      <path style="fill:none;fill-rule:evenodd;stroke:#8654c8;stroke-width:22.1547;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" transform="matrix(.47052 0 0 .25294 -7.6529544 94.494252)" d="M344.68444 520.44692c-111.86556-31.34675-167.95111-156.0468-134.97989-263.77558C239.60012 158.99182 332.51603 92.584076 433.4191 87.992233"/>
+    </mask>
+    <path id="a" d="M725.36469 894.01007h648.3996v645.5589h-648.3996z"/>
+  </defs>
+  <rect style="fill:#995aec;fill-opacity:1;stroke:none;stroke-width:3.57354;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;paint-order:stroke fill markers;fill-rule:nonzero" width="90" height="127.49999" x="60" y="67.5" rx="33.466637" ry="14.999998"/>
+  <rect style="fill:#9a5aec;fill-opacity:1;stroke:none;stroke-width:3.5746;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;paint-order:stroke fill markers" width="180" height="82.5" x="15" y="15" rx="38.264698" ry="20.844294"/>
+  <text xml:space="preserve" style="font-style:normal;font-weight:400;font-size:65.1807px;line-height:1.25;font-family:sans-serif;letter-spacing:0;word-spacing:0;fill:#000;fill-opacity:1;stroke:none;stroke-width:1.62952" x="94.689407" y="164.405" transform="scale(.92429 1.08191)"/>
+  <rect style="fill:#5b368d;fill-opacity:1;stroke:none;stroke-width:3.5746;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;paint-order:stroke fill markers" width="180" height="82.5" x="15" y="15" rx="38.264698" ry="20.844294" mask="url(#b)"/>
+  <rect style="fill:#995aec;fill-opacity:1;stroke:none;stroke-width:3.57354;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;paint-order:stroke fill markers;fill-rule:nonzero" width="90" height="127.49999" x="60" y="67.5" rx="33.466637" ry="14.999998"/>
+  <rect style="fill:none;fill-opacity:1;stroke:none;stroke-width:3.57354;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;paint-order:stroke fill markers;fill-rule:nonzero" width="90" height="127.49999" x="60" y="67.5" rx="33.466637" ry="14.999998"/>
+  <rect style="fill:#5b368d;fill-opacity:1;stroke:none;stroke-width:3.57354;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;paint-order:stroke fill markers;fill-rule:nonzero" width="90" height="127.49999" x="60" y="67.5" rx="33.466637" ry="14.999998" mask="url(#c)"/>
+  <rect style="fill:#5b368d;fill-opacity:1;stroke:none;stroke-width:3.57354;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;paint-order:stroke fill markers;fill-rule:nonzero" width="90" height="127.49999" x="60" y="67.5" rx="33.466637" ry="14.999998" mask="url(#d)"/>
+</svg>
