@@ -106,8 +106,10 @@ function reset() {
 }
 
 async function procMsg(data) {
-    message.innerHTML = data.replace("/message ,s ", "");
-    message.style.color = "#ff4545"
+    data = data.replace("/message ,s ", "");
+    message.innerHTML = (data === "") ? "Timecode Monitor" : data;
+    if (data === "") { return; }
+    message.style.color = "#ff4545";
     await new Promise(r => setTimeout(r, 500));
     message.style.color = "#FDFBF7"
     await new Promise(r => setTimeout(r, 500));
