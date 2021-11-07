@@ -69,15 +69,15 @@ func gui() {
 			pushClientMessage(clientMessage)
 		}
 
-		infoLabel.Text = "Starting Server"
+		infoLabel.SetText("Starting Server")
 
 		if err := serverStart(); err != nil {
 			dialog.ShowError(err, w)
-			infoLabel.Text = "Server Stopped"
+			infoLabel.SetText("Server Errored")
 			return
 		}
 
-		infoLabel.Text = fmt.Sprintf("Server Started. Open your web browser to: http://%s:%s", getIP().String(), httpPort)
+		infoLabel.SetText(fmt.Sprintf("Server Started. Open your web browser to: http://%s:%s", getIP().String(), httpPort))
 		form.SubmitText = "Update Server"
 		oscOutput.Disable()
 		oscInput.Disable()
@@ -85,9 +85,9 @@ func gui() {
 		httpPortField.Disable()
 
 		form.OnCancel = func() {
-			infoLabel.Text = "Stopping Server"
+			infoLabel.SetText("Stopping Server")
 			serverStop()
-			infoLabel.Text = "Server Stopped"
+			infoLabel.SetText("Server Stopped")
 			form.SubmitText = "Start Server"
 			oscOutput.Enable()
 			oscInput.Enable()
