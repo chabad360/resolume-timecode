@@ -30,6 +30,7 @@ var (
 
 	//go:embed index.html
 	//go:embed main.js
+	//go:embed images/favicon.png
 	fs embed.FS
 
 	p          = pure.New()
@@ -49,6 +50,7 @@ func main() {
 	p.Get("/ws", websocketStart)
 	p.Get("/", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
 	p.Get("/main.js", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
+	p.Get("/images/favicon.png", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
 
 	gui()
 

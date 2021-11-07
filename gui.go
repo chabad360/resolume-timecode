@@ -2,17 +2,27 @@ package main
 
 import (
 	"fmt"
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/validation"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 	"runtime"
+
+	_ "embed"
+)
+
+var (
+	//go:embed images/logo.png
+	logo         []byte
+	logoResource = fyne.NewStaticResource("logo", logo)
 )
 
 func gui() {
 	a := app.New()
 	w := a.NewWindow("Timecode Monitor Server")
+	w.SetIcon(logoResource)
 
 	infoLabel := widget.NewLabel("Server Stopped")
 
