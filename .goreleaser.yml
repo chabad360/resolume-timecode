@@ -1,7 +1,9 @@
 project_name: resolume-timecode
 before:
   hooks:
+    - go install github.com/tc-hib/go-winres@latest
     - go mod download
+    - go-winres make --product-version=git-tag --file-version=git-tag
 builds:
 #  - id: darwin-amd64
 #    main: ./
