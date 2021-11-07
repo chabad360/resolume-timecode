@@ -108,15 +108,15 @@ function reset() {
 async function procMsg(data) {
     data = data.replace("/message ,s ", "");
     message.innerHTML = (data === "") ? "Timecode Monitor" : data;
-    if (data === "") { return; }
-    message.style.color = "#ff4545";
-    await new Promise(r => setTimeout(r, 500));
-    message.style.color = "#FDFBF7"
-    await new Promise(r => setTimeout(r, 500));
-    message.style.color = "#ff4545"
-    await new Promise(r => setTimeout(r, 500));
-    message.style.color = "#FDFBF7"
-    await new Promise(r => setTimeout(r, 500));
+    if (data === "") {
+        return;
+    }
+    for (let i = 0; i < 3; i++) {
+        message.style.color = "#ff4545";
+        await new Promise(r => setTimeout(r, 500));
+        message.style.color = "#FDFBF7"
+        await new Promise(r => setTimeout(r, 500));
+    }
 }
 
 function procPos(msg, timeNow) {
