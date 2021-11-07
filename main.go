@@ -21,11 +21,12 @@ var (
 	broadcast = &Distributor{
 		l: map[string]chan []byte{},
 	}
-	OSCOutPort = "7001"
-	OSCPort    = "7000"
-	OSCAddr    = "127.0.0.1"
-	httpPort   = "8080"
-	clipPath   = "/composition/selectedclip"
+	OSCOutPort    = "7001"
+	OSCPort       = "7000"
+	OSCAddr       = "127.0.0.1"
+	httpPort      = "8080"
+	clipPath      = "/composition/selectedclip"
+	clientMessage = ""
 
 	//go:embed index.html
 	//go:embed main.js
@@ -166,8 +167,8 @@ func listenOSC(conn net.PacketConn, wg *sync.WaitGroup) {
 	}
 }
 
-func pushClientMessage(message string) {
-	broadcast.Publish([]byte("/message ,s " + message))
+func pushClientMessage() {
+	broadcast.Publish([]byte("/message ,s " + clientMessage))
 }
 
 func websocketStart(w http.ResponseWriter, r *http.Request) {
@@ -179,6 +180,10 @@ func websocketStart(w http.ResponseWriter, r *http.Request) {
 
 	ctx := c.CloseRead(context.Background())
 
+	if c.Write(ctx, websocket.MessageText, []byte("/message ,s "+clientMessage)) != nil {
+		return
+	}
+
 	l := broadcast.Listen(r.RemoteAddr)
 	defer broadcast.Close(r.RemoteAddr)
 
@@ -188,8 +193,7 @@ func websocketStart(w http.ResponseWriter, r *http.Request) {
 			c.Close(websocket.StatusNormalClosure, "")
 			return
 		case m := <-l:
-			err = c.Write(ctx, websocket.MessageText, m)
-			if err != nil {
+			if c.Write(ctx, websocket.MessageText, m) != nil {
 				//log.Println(err)
 				return
 			}

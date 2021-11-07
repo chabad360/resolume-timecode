@@ -10,10 +10,6 @@ import (
 	"runtime"
 )
 
-var (
-	clientMessage = ""
-)
-
 func gui() {
 	a := app.New()
 	w := a.NewWindow("Timecode Monitor Server")
@@ -66,7 +62,7 @@ func gui() {
 
 		if messageField.Text != clientMessage {
 			clientMessage = messageField.Text
-			pushClientMessage(clientMessage)
+			pushClientMessage()
 		}
 
 		infoLabel.SetText("Starting Server")
