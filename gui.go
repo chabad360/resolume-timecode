@@ -8,6 +8,7 @@ import (
 	"fyne.io/fyne/v2/data/validation"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
+	"html/template"
 	"runtime"
 
 	_ "embed"
@@ -70,7 +71,7 @@ func gui() {
 		OSCAddr = oscAddr.Text
 		httpPort = httpPortField.Text
 
-		clientMessage = messageField.Text
+		clientMessage = template.HTMLEscapeString(messageField.Text)
 		pushClientMessage()
 
 		infoLabel.SetText("Starting Server")
