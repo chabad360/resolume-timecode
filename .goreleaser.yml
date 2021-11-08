@@ -22,8 +22,7 @@ builds:
       post: 
       - upx {{ .Path }}
       - sh macos.sh resolume-timecode images/logo.svg "me.chabad360.resolume-timecode" {{ .Major }} {{ .Minor }}
-      - mv resolume-timecode.app {{ dir .Path }}
-      - cp {{ .Path }} {{ dir .Path }}/resolume-timecode.app/Contents/MacOS/
+      - cp {{ .Path }} resolume-timecode.app/Contents/MacOS/
 #   - id: windows-amd64  
 #     goos:
 #       - windows
@@ -67,4 +66,4 @@ archives:
     files:
       - LICENSE
       - README.MD
-      - {{ .Path }}.app
+      - resolume-timecode.app
