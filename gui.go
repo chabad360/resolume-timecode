@@ -21,7 +21,7 @@ var (
 )
 
 func gui() {
-	a := app.New()
+	a := app.NewWithID("me.chabad360.resolume-timecode")
 	w := a.NewWindow("Timecode Monitor Server")
 	w.SetIcon(logoResource)
 
