@@ -10,11 +10,6 @@ builds:
       - darwin
     goarch:
       - amd64
-    env:
-#       - PKG_CONFIG_SYSROOT_DIR=/sysroot/macos/amd64
-#       - PKG_CONFIG_PATH=/sysroot/macos/amd64/usr/local/lib/pkgconfig
-#       - CC=o64-clang
-#       - CXX=o64-clang++
     flags:
       - -mod=readonly
       - -trimpath
@@ -24,27 +19,20 @@ builds:
     mod_timestamp: '{{ .CommitTimestamp }}'
     hooks:
       post: upx {{ .Path }}
-#  - id: darwin-m1
-#    main: ./
-#    binary: golang-cross
-#    goos:
-#      - darwin
-#    goarch:
-#      - arm64
-#    env:
-##      - PKG_CONFIG_SYSROOT_DIR=/sysroot/macos/arm64
-##      - PKG_CONFIG_PATH=/sysroot/macos/arm64/usr/local/lib/pkgconfig
-#      - CC=oa64-clang
-#      - CXX=oa64-clang++
-#    flags:
-#      - -mod=readonly
-#      - -trimpath
-#    ldflags:
-#      - -s -w
-#      - -X main.version={{.Version}}
-#    mod_timestamp: '{{ .CommitTimestamp }}'
-#    hooks:
-#      post: upx {{ .Path }}
+  - id: darwin-m1
+    goos:
+      - darwin
+    goarch:
+      - arm64
+    flags:
+      - -mod=readonly
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+    mod_timestamp: '{{ .CommitTimestamp }}'
+    hooks:
+      post: upx {{ .Path }}
   - goos:
       - windows
     goarch:
@@ -65,6 +53,8 @@ builds:
       post: upx {{ .Path }}
 checksum:
   name_template: 'checksums.txt'
+universal_binaries:
+  replace: true
 changelog:
   sort: asc
   filters:
