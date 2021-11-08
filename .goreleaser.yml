@@ -1,53 +1,32 @@
 project_name: resolume-timecode
 before:
   hooks:
-    - go install github.com/tc-hib/go-winres@latest
+    - go get github.com/tc-hib/go-winres@latest
     - go mod download
     - go-winres make --product-version=git-tag --file-version=git-tag
 builds:
-#  - id: darwin-amd64
-#    main: ./
-#    binary: golang-cross
-#    goos:
-#      - darwin
-#    goarch:
-#      - amd64
-#    env:
-##      - PKG_CONFIG_SYSROOT_DIR=/sysroot/macos/amd64
-##      - PKG_CONFIG_PATH=/sysroot/macos/amd64/usr/local/lib/pkgconfig
-#      - CC=o64-clang
-#      - CXX=o64-clang++
-#    flags:
-#      - -mod=readonly
-#      - -trimpath
-#    ldflags:
-#      - -s -w
-#      - -X main.version={{.Version}}
-#    mod_timestamp: '{{ .CommitTimestamp }}'
-#    hooks:
-#      post: upx {{ .Path }}
-#  - id: darwin-m1
-#    main: ./
-#    binary: golang-cross
-#    goos:
-#      - darwin
-#    goarch:
-#      - arm64
-#    env:
-##      - PKG_CONFIG_SYSROOT_DIR=/sysroot/macos/arm64
-##      - PKG_CONFIG_PATH=/sysroot/macos/arm64/usr/local/lib/pkgconfig
-#      - CC=oa64-clang
-#      - CXX=oa64-clang++
-#    flags:
-#      - -mod=readonly
-#      - -trimpath
-#    ldflags:
-#      - -s -w
-#      - -X main.version={{.Version}}
-#    mod_timestamp: '{{ .CommitTimestamp }}'
-#    hooks:
-#      post: upx {{ .Path }}
-  - goos:
+  - id: darwin
+    goos:
+      - darwin
+    goarch:
+      - amd64
+    env:
+      - CGO_ENABLED=1
+    flags:
+      - -mod=readonly
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.Date={{.CommitDate}}
+    mod_timestamp: '{{ .CommitTimestamp }}'
+    hooks:
+      post:
+        - upx {{ .Path }}
+        - sh macos.sh resolume-timecode images/logo.svg "me.chabad360.resolume-timecode" {{ .Major }} {{ .Minor }}
+        - cp {{ .Path }} resolume-timecode.app/Contents/MacOS/
+  - id: windows
+    goos:
       - windows
     goarch:
       - amd64
@@ -61,6 +40,7 @@ builds:
     ldflags:
       - -s -w
       - -X main.version={{.Version}}
+      - -X main.Date={{.CommitDate}}
       - -H=windowsgui
     mod_timestamp: '{{ .CommitTimestamp }}'
     hooks:
@@ -82,8 +62,19 @@ release:
   draft: true
   prerelease: auto
 archives:
-  - format_overrides:
-      - goos: windows
-        format: zip
-#    replacements:
-#      darwin: mac
+  - id: darwin
+    builds:
+      - darwin
+    format: zip
+    wrap_in_directory: true
+    replacements:
+      darwin: macOS
+    files:
+      - LICENSE
+      - README.MD
+      - resolume-timecode.app
+  - id: windows
+    builds:
+      - windows
+    format: zip
+    wrap_in_directory: true
