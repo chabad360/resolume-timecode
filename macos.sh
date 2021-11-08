@@ -62,7 +62,7 @@ fileName="$(basename $ICONNAME)"
 postfix=${fileName##*.}
 
 if [[ $postfix == 'svg' ]]; then
-    rsvg-convert -h 1024 "$fileName" > ${fileName}.png
+    convert -antialias -background none "$fileName" -resize 1024x1024 ${fileName}.png
     fileName=${fileName}.png
 fi
 
