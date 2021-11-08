@@ -2,12 +2,10 @@ name: Release
 
 on:
   push:
-    tags:
-      - '*'
 
 jobs:
   goreleaser:
-    runs-on: ubuntu-latest
+    runs-on: macos-11
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -30,7 +28,7 @@ jobs:
           path: |
             ~/go
             ~/.cache/go-build
-          #  ~/Library/Caches/go-build
+            ~/Library/Caches/go-build
           #  %LocalAppData%\go-build
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ github.sha }}
           restore-keys: |
@@ -41,12 +39,17 @@ jobs:
         uses: goreleaser/goreleaser-action@v2
         with:
           version: latest
-          args: release --rm-dist
+          args: build --snapshot --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
-      - name: VirusTotal Scan
-        uses: crazy-max/ghaction-virustotal@v2
+#       - name: VirusTotal Scan
+#         uses: crazy-max/ghaction-virustotal@v2
+#         with:
+#           vt_api_key: ${{ secrets.VT_API_KEY }}
+#           files: dist/resolume-timecode_windows_amd64/resolume-timecode.exe
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v2.2.4
         with:
-          vt_api_key: ${{ secrets.VT_API_KEY }}
-          files: dist/resolume-timecode_windows_amd64/resolume-timecode.exe
+          path: dist
