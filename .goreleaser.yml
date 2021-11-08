@@ -68,7 +68,7 @@ archives:
     wrap_in_directory: true
     replacements:
       darwin: macOS
-  - id: darwin
+  - id: windows
     builds: windows
     format: zip
     wrap_in_directory: true
