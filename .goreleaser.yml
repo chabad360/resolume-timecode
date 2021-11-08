@@ -5,24 +5,11 @@ before:
     - go mod download
     - go-winres make --product-version=git-tag --file-version=git-tag
 builds:
-#   - id: darwin-amd64
-  - goos:
+  - id: darwin
+    goos:
       - darwin
     goarch:
       - amd64
-    flags:
-      - -mod=readonly
-      - -trimpath
-    ldflags:
-      - -s -w
-      - -X main.version={{.Version}}
-    mod_timestamp: '{{ .CommitTimestamp }}'
-    hooks:
-      post: upx {{ .Path }}
-#   - id: darwin-m1
-  - goos:
-      - darwin
-    goarch:
       - arm64
     flags:
       - -mod=readonly
@@ -33,7 +20,8 @@ builds:
     mod_timestamp: '{{ .CommitTimestamp }}'
     hooks:
       post: upx {{ .Path }}
-  - goos:
+  - id: windows-amd64  
+    goos:
       - windows
     goarch:
       - amd64
@@ -54,7 +42,7 @@ builds:
 checksum:
   name_template: 'checksums.txt'
 universal_binaries:
-  - replace: true
+  - id: darwin
 changelog:
   sort: asc
   filters:
