@@ -25,7 +25,8 @@ func gui() {
 	w := a.NewWindow("Timecode Monitor Server")
 	w.SetIcon(logoResource)
 
-	infoLabel := widget.NewLabel("Server Stopped")
+	infoLabel := widget.NewRichTextWithText("Server Stopped")
+	infoLabel.Wrapping = fyne.TextWrapBreak
 
 	path := widget.NewEntry()
 	path.SetText(clipPath)
@@ -74,15 +75,15 @@ func gui() {
 		clientMessage = template.HTMLEscapeString(messageField.Text)
 		pushClientMessage()
 
-		infoLabel.SetText("Starting Server")
+		infoLabel.ParseMarkdown("Starting Server")
 
 		if err := serverStart(); err != nil {
 			dialog.ShowError(err, w)
-			infoLabel.SetText("Server Errored")
+			infoLabel.ParseMarkdown("Server Errored")
 			return
 		}
 
-		infoLabel.SetText(fmt.Sprintf("Server Started. Open your web browser to: http://%s:%s", getIP().String(), httpPort))
+		infoLabel.ParseMarkdown(fmt.Sprintf("Server Running. Open your web browser to [http://%s:%s](http://%[1]s:%[2]s/) to view the timecode.\n", getIP().String(), httpPort))
 		form.SubmitText = "Update Server"
 		oscOutput.Disable()
 		oscInput.Disable()
@@ -90,9 +91,9 @@ func gui() {
 		httpPortField.Disable()
 
 		form.OnCancel = func() {
-			infoLabel.SetText("Stopping Server")
+			infoLabel.ParseMarkdown("Stopping Server")
 			serverStop()
-			infoLabel.SetText("Server Stopped")
+			infoLabel.ParseMarkdown("Server Stopped")
 			form.SubmitText = "Start Server"
 			oscOutput.Enable()
 			oscInput.Enable()
