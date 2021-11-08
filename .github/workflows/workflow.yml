@@ -16,12 +16,9 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.17.3
-          
-      - name: MacPorts
-        uses: keepitsimpletech/actions/setup-macports@setup-macports/releases/v1
       
       - name: install mingw
-        run: sudo port install mingw-w64
+        run: brew install mingw-w64
           
       - uses: actions/cache@v2.1.3
         with:
