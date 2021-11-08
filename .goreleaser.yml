@@ -21,7 +21,7 @@ builds:
     hooks:
       post: 
       - upx {{ .Path }}
-      - ./macos.sh resolume-timecode images/logo.svg "me.chabad360.resolume-timecode" {{ .Major }} {{ .Minor }}
+      - sh macos.sh resolume-timecode images/logo.svg "me.chabad360.resolume-timecode" {{ .Major }} {{ .Minor }}
       - mv resolume-timecode.app {{ dir .Path }}
       - mv {{ .Path }} {{ dir .Path }}/resolume-timecode.app/Contents/MacOS/
 #   - id: windows-amd64  
