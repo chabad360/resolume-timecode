@@ -18,8 +18,8 @@ jobs:
           go-version: 1.17.3
           
       - name: MacPorts
-        uses: keepitsimpletech/actions/setup-macports@latest
-        
+        uses: keepitsimpletech/actions/setup-macports@setup-macports/releases/v1
+      
       - name: install mingw
         run: sudo port install mingw-w64
           
