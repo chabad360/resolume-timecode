@@ -24,25 +24,25 @@ builds:
       post: 
       - upx {{ .Path }}
       - fyne package --os darwin --exe dist/darwin_darwin_{{ .Arch }}/resolume-timecode --icon images/logo.png --id "me.chabad360.resolume-timecode"   
-  - id: windows-amd64  
-    goos:
-      - windows
-    goarch:
-      - amd64
-    env:
-      - CGO_ENABLED=1
-      - CC=x86_64-w64-mingw32-gcc
-      - CXX=x86_64-w64-mingw32-g++
-    flags:
-      - -mod=readonly
-      - -trimpath
-    ldflags:
-      - -s -w
-      - -X main.version={{.Version}}
-      - -H=windowsgui
-    mod_timestamp: '{{ .CommitTimestamp }}'
-    hooks:
-      post: upx {{ .Path }}
+#   - id: windows-amd64  
+#     goos:
+#       - windows
+#     goarch:
+#       - amd64
+#     env:
+#       - CGO_ENABLED=1
+#       - CC=x86_64-w64-mingw32-gcc
+#       - CXX=x86_64-w64-mingw32-g++
+#     flags:
+#       - -mod=readonly
+#       - -trimpath
+#     ldflags:
+#       - -s -w
+#       - -X main.version={{.Version}}
+#       - -H=windowsgui
+#     mod_timestamp: '{{ .CommitTimestamp }}'
+#     hooks:
+#       post: upx {{ .Path }}
 checksum:
   name_template: 'checksums.txt'
 universal_binaries:
@@ -62,13 +62,7 @@ release:
   draft: true
   prerelease: auto
 archives:
-  - id: darwin
-    builds: darwin
-    format: zip
-    wrap_in_directory: true
-    replacements:
-      darwin: macOS
-  - id: windows
-    builds: windows
-    format: zip
-    wrap_in_directory: true
+  format: zip
+  wrap_in_directory: true
+  replacements:
+    darwin: macOS
