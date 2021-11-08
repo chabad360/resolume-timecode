@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (c) 2017 David Pennington (modified by Mendel Greenberg) LICENSE: MIT
 
 # Mac OSX .app builder
 
@@ -7,7 +8,7 @@ function die {
 	exit 1
 }
 
-if [ "$#" -ne 2 ]; then
+if [ "$#" -ne 5 ]; then
 	die "Usage: `basename $0` AppNameHere icon-file.svg com.example.app 0 1"
 fi
 
