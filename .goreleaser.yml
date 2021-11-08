@@ -10,7 +10,6 @@ builds:
       - darwin
     goarch:
       - amd64
-      - arm64
     flags:
       - -mod=readonly
       - -trimpath
@@ -23,7 +22,7 @@ builds:
     hooks:
       post: 
       - upx {{ .Path }}
-      - fyne package --os darwin --exe dist/darwin_darwin_{{ .Arch }}/resolume-timecode --icon images/logo.png --id "me.chabad360.resolume-timecode"   
+      - fyne package --os darwin --exe dist/darwin_darwin_amd64/resolume-timecode --icon images/logo.png --id "me.chabad360.resolume-timecode"   
 #   - id: windows-amd64  
 #     goos:
 #       - windows
