@@ -14,8 +14,6 @@ builds:
     flags:
       - -mod=readonly
       - -trimpath
-    tags:
-      - gles
     ldflags:
       - -s -w
       - -X main.version={{.Version}}
@@ -23,7 +21,7 @@ builds:
     hooks:
       post: 
       - upx {{ .Path }}
-      - fyne package --os darwin --exe dist/darwin_darwin_amd64/resolume-timecode --icon images/logo.png --id "me.chabad360.resolume-timecode"   
+      - cd dist/darwin_darwin_amd64 && ../../macos.sh resolume-timecode ../../images/logo.svg "me.chabad360.resolume-timecode" {{ .Major }} {{ .Minor }} && mv resolume-timecode resolume-timecode.app/Contents/MacOS/
 #   - id: windows-amd64  
 #     goos:
 #       - windows
@@ -45,8 +43,6 @@ builds:
 #       post: upx {{ .Path }}
 checksum:
   name_template: 'checksums.txt'
-universal_binaries:
-  - id: darwin
 changelog:
   sort: asc
   filters:
