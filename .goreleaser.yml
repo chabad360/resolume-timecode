@@ -62,7 +62,9 @@ release:
   draft: true
   prerelease: auto
 archives:
-  - builds: darwin
+  - id: darwin
+    builds: 
+      - darwin
     format: zip
     wrap_in_directory: true
     replacements:
@@ -71,6 +73,8 @@ archives:
       - LICENSE
       - README.MD
       - resolume-timecode.app
-  - builds: windows
+  - id: windows
+    builds: 
+      - windows
     format: zip
     wrap_in_directory: true 
