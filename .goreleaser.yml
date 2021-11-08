@@ -5,27 +5,25 @@ before:
     - go mod download
     - go-winres make --product-version=git-tag --file-version=git-tag
 builds:
-#  - id: darwin-amd64
-#    main: ./
-#    binary: golang-cross
-#    goos:
-#      - darwin
-#    goarch:
-#      - amd64
-#    env:
-##      - PKG_CONFIG_SYSROOT_DIR=/sysroot/macos/amd64
-##      - PKG_CONFIG_PATH=/sysroot/macos/amd64/usr/local/lib/pkgconfig
-#      - CC=o64-clang
-#      - CXX=o64-clang++
-#    flags:
-#      - -mod=readonly
-#      - -trimpath
-#    ldflags:
-#      - -s -w
-#      - -X main.version={{.Version}}
-#    mod_timestamp: '{{ .CommitTimestamp }}'
-#    hooks:
-#      post: upx {{ .Path }}
+ - id: darwin-amd64
+   goos:
+     - darwin
+   goarch:
+     - amd64
+   env:
+#      - PKG_CONFIG_SYSROOT_DIR=/sysroot/macos/amd64
+#      - PKG_CONFIG_PATH=/sysroot/macos/amd64/usr/local/lib/pkgconfig
+     - CC=o64-clang
+     - CXX=o64-clang++
+   flags:
+     - -mod=readonly
+     - -trimpath
+   ldflags:
+     - -s -w
+     - -X main.version={{.Version}}
+   mod_timestamp: '{{ .CommitTimestamp }}'
+   hooks:
+     post: upx {{ .Path }}
 #  - id: darwin-m1
 #    main: ./
 #    binary: golang-cross
