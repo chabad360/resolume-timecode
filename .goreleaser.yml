@@ -62,7 +62,7 @@ release:
   draft: true
   prerelease: auto
 archives:
-  format: zip
-  wrap_in_directory: true
-  replacements:
-    darwin: macOS
+  - format: zip
+    wrap_in_directory: true
+    replacements:
+      darwin: macOS
