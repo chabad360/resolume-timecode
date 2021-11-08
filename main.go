@@ -112,18 +112,20 @@ func serverStart() error {
 }
 
 func serverStop() {
-	broadcast.Publish([]byte("/stop "))
-	ctx, c := context.WithTimeout(context.Background(), time.Second*3)
-	err := httpServer.Shutdown(ctx)
-	if conn != nil {
-		conn.Close()
+	if running {
+		broadcast.Publish([]byte("/stop "))
+		ctx, c := context.WithTimeout(context.Background(), time.Second*3)
+		err := httpServer.Shutdown(ctx)
+		if conn != nil {
+			conn.Close()
+		}
+		if err != nil {
+			httpServer.Close()
+		}
+		c()
+		running = false
+		wg.Wait()
 	}
-	if err != nil {
-		httpServer.Close()
-	}
-	c()
-	running = false
-	wg.Wait()
 }
 
 func getIP() net.IP {
