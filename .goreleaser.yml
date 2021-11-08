@@ -21,7 +21,9 @@ builds:
     hooks:
       post: 
       - upx {{ .Path }}
-      - cd dist/darwin_darwin_amd64 && ../../macos.sh resolume-timecode ../../images/logo.svg "me.chabad360.resolume-timecode" {{ .Major }} {{ .Minor }} && mv resolume-timecode resolume-timecode.app/Contents/MacOS/
+      - ./macos.sh {{ ..Binary }} images/logo.svg "me.chabad360.resolume-timecode" {{ .Major }} {{ .Minor }}
+      - mv {{ ..Binary }}.app {{ dir .Path }}
+      - mv {{ .Path }} {{ dir .Path }}/{{ ..Binary }}.app/Contents/MacOS/
 #   - id: windows-amd64  
 #     goos:
 #       - windows
