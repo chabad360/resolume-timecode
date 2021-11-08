@@ -62,7 +62,7 @@ fileName="$(basename $ICONNAME)"
 postfix=${fileName##*.}
 
 if [[ $postfix == 'svg' ]]; then
-    qlmanage -z -t -s 1024 -o ./ "$fileName"
+    rsvg-convert -h 1024 "$fileName" > ${fileName}.png
     fileName=${fileName}.png
 fi
 
