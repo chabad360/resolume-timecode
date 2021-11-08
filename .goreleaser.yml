@@ -2,7 +2,6 @@ project_name: resolume-timecode
 before:
   hooks:
     - go get github.com/tc-hib/go-winres@latest
-    - go get fyne.io/fyne/v2/cmd/fyne
     - go mod download
     - go-winres make --product-version=git-tag --file-version=git-tag
 builds:
@@ -11,37 +10,41 @@ builds:
       - darwin
     goarch:
       - amd64
+    env:
+      - CGO_ENABLED=1
     flags:
       - -mod=readonly
       - -trimpath
     ldflags:
       - -s -w
       - -X main.version={{.Version}}
+      - -X main.Date={{.CommitDate}}
     mod_timestamp: '{{ .CommitTimestamp }}'
     hooks:
       post: 
       - upx {{ .Path }}
       - sh macos.sh resolume-timecode images/logo.svg "me.chabad360.resolume-timecode" {{ .Major }} {{ .Minor }}
       - cp {{ .Path }} resolume-timecode.app/Contents/MacOS/
-#   - id: windows-amd64  
-#     goos:
-#       - windows
-#     goarch:
-#       - amd64
-#     env:
-#       - CGO_ENABLED=1
-#       - CC=x86_64-w64-mingw32-gcc
-#       - CXX=x86_64-w64-mingw32-g++
-#     flags:
-#       - -mod=readonly
-#       - -trimpath
-#     ldflags:
-#       - -s -w
-#       - -X main.version={{.Version}}
-#       - -H=windowsgui
-#     mod_timestamp: '{{ .CommitTimestamp }}'
-#     hooks:
-#       post: upx {{ .Path }}
+  - id: windows
+    goos:
+      - windows
+    goarch:
+      - amd64
+    env:
+      - CGO_ENABLED=1
+      - CC=x86_64-w64-mingw32-gcc
+      - CXX=x86_64-w64-mingw32-g++
+    flags:
+      - -mod=readonly
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.Date={{.CommitDate}}
+      - -H=windowsgui
+    mod_timestamp: '{{ .CommitTimestamp }}'
+    hooks:
+      post: upx {{ .Path }}
 checksum:
   name_template: 'checksums.txt'
 changelog:
@@ -59,7 +62,8 @@ release:
   draft: true
   prerelease: auto
 archives:
-  - format: zip
+  - builds: darwin
+    format: zip
     wrap_in_directory: true
     replacements:
       darwin: macOS
@@ -67,3 +71,6 @@ archives:
       - LICENSE
       - README.MD
       - resolume-timecode.app
+  - builds: windows
+    format: zip
+    wrap_in_directory: true 
