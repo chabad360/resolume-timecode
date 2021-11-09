@@ -82,6 +82,11 @@ func serverStart() error {
 	wg.Add(1)
 	go listenOSC(conn, &wg)
 
+	message.Address = fmt.Sprintf("%s/name", clipPath)
+	b.Reset()
+	message.LightMarshalBinary(b)
+	client.Write(b.Bytes())
+
 	httpServer = &http.Server{Addr: ":" + httpPort, Handler: p.Serve()}
 
 	wg.Add(1)
@@ -151,7 +156,7 @@ func listenOSC(conn net.PacketConn, wg *sync.WaitGroup) {
 func handleMessage(msg string) {
 	if strings.Contains(msg, clipPath) {
 		broadcast.Publish([]byte(msg[len(clipPath):]))
-		if strings.Contains(msg, "/connect") || strings.Contains(msg, "/direction") {
+		if strings.Contains(msg, "/connect") || strings.Contains(msg, "direction ") {
 			message.Address = fmt.Sprintf("%s/name", clipPath)
 			b.Reset()
 			message.LightMarshalBinary(b)
