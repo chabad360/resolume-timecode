@@ -3,6 +3,7 @@ before:
   hooks:
     - go get github.com/tc-hib/go-winres@latest
     - go mod download
+    - rsvg-convert -h 256 images/logo.svg > winres icon.png
     - go-winres make --product-version=git-tag --file-version=git-tag
 builds:
   - id: darwin
