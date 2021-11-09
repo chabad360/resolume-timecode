@@ -13,7 +13,7 @@ const clipLength        = document.getElementById("ms");
 const status            = document.getElementById("status");
 const message           = document.getElementById("msg");
 
-const multiplier = 10000000000; // This constant is used to avoid JSs famous floating point pitfalls
+const multiplier = 100000000000; // This constant is used to avoid JSs famous floating point pitfalls
 
 let clipName         = "";
 let directionForward = true;
