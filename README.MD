@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="images/logo.png" alt="logo" width="172" /> 
+  <img src="images/logo.svg" alt="logo" width="172" height="172" /> 
   <h2>Resolume Timecode Monitor</h2>
   <p>View the time left for a playing clip on multiple devices.</p>
 </div>
@@ -11,14 +11,26 @@
 ## How to use
 
 1. Download the [latest release](https://github.com/chabad360/resolume-timecode/releases)
-2. Open _resolume-timecode.exe_ and make sure that all the information in there is set correctly.
+2. Open the app and verify that all the information in there is set correctly.
 3. Click _Start Server_
-4. Open your web browser to `http://localhost:8080` (or the IP of the device that's running this app plus `:8080`).
+4. Open your web browser to the location specified by the application.
 5. Start playing a clip in Resolume.
 6. Profit.
 
-Note: The precision should be within a few hundred milliseconds (usually 50ms), if it feels off double check that the clip length 
-(under `Advanced Settings` on the client) is correct.
+> Note: The precision should be within a few hundred milliseconds (usually 50ms), if it feels off double check that the clip length 
+(under `Advanced Settings` on the client) is correct. If it isn't, just refresh the page.
+
+### How to set the `Path` field
+
+| Clip to use | Example path |
+| :---------- | :----------- |
+| Selected Clip | `/composition/selectedclip` |
+| Specific Clip | `/composition/layers/1/clips/1` |
+| Selected Layer | `/composition/selectedlayer` |
+| Specific Layer | `/composition/layers/1` |
+
+> Note: using a layer will cause the layer's name to be shown on the client instead of the clip name
+> (I'm not sure if there is a way to fix that).
 
 ## Motivation
 
@@ -40,12 +52,11 @@ There is also a bit of processing done here to reduce the load on the device (it
 
 ## Known Issues
 
-- If a clip loops, the counter will stop. This is because I haven't yet figured out a good way to determine that a clip has looped,
-  without causing other issues.
 - Uses around 60-70mb of RAM. Sorry, can't do much about that, at least it's better than an electron app.
+- Restarting Resolume while the server is running will cause it to crash. Will fix eventually.
 
 ## Building
 
-Because this is based on [fyne](https://fyne.io) it requires the use of _cgo_, so make sure you have some CC installed on your system.
+Because this is based on [fyne](https://fyne.io) it requires the use of _cgo_, so make sure you have a C compiler installed on your system.
 
 Just clone the repo and run `go build github.com/chabad360/resolume-timecode`.
