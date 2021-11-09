@@ -129,7 +129,9 @@ function procPos(msg, timeNow) {
         pos = multiplier - pos
     }
 
-    if (pos < 50) {
+    let t = ((average(estSizeBuffer)) * pos) / multiplier;
+
+    if (t < 70) {
         posPrev = 0;
     }
 
@@ -162,7 +164,7 @@ function procPos(msg, timeNow) {
 
     samples++;
 
-    let t = ((average(estSizeBuffer)) * (multiplier - pos)) / multiplier;
+    t = ((average(estSizeBuffer)) * (multiplier - pos)) / multiplier;
 
     posPrev  = pos;
     timePrev = timeNow;
