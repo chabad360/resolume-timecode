@@ -40,7 +40,8 @@ var (
 	running    bool
 	message    = &osc.Message{Arguments: []interface{}{"?"}}
 	client     *net.UDPConn
-	msg        string
+	clipName   string
+	b          = new(bytes.Buffer)
 )
 
 func main() {
@@ -80,24 +81,6 @@ func serverStart() error {
 
 	wg.Add(1)
 	go listenOSC(conn, &wg)
-
-	wg.Add(1)
-	go func() {
-		b := new(bytes.Buffer)
-
-		for !running {
-		}
-		for running {
-			time.Sleep(time.Second)
-			message.Address = fmt.Sprintf("%s/name", clipPath)
-			b.Reset()
-			message.LightMarshalBinary(b)
-			client.Write(b.Bytes())
-		}
-
-		client.Close()
-		wg.Done()
-	}()
 
 	httpServer = &http.Server{Addr: ":" + httpPort, Handler: p.Serve()}
 
@@ -154,19 +137,27 @@ func listenOSC(conn net.PacketConn, wg *sync.WaitGroup) {
 			default:
 				continue
 			case *osc.Message:
-				msg = p.String()
-				if strings.Contains(msg, clipPath) {
-					broadcast.Publish([]byte(msg[len(clipPath):]))
-				}
+				handleMessage(p.String())
 
 			case *osc.Bundle:
 				for _, message := range p.Messages {
-					msg = message.String()
-					if strings.Contains(msg, clipPath) {
-						broadcast.Publish([]byte(msg[len(clipPath):]))
-					}
+					handleMessage(message.String())
 				}
 			}
+		}
+	}
+}
+
+func handleMessage(msg string) {
+	if strings.Contains(msg, clipPath) {
+		broadcast.Publish([]byte(msg[len(clipPath):]))
+		if strings.Contains(msg, "/connect") || strings.Contains(msg, "/direction") {
+			message.Address = fmt.Sprintf("%s/name", clipPath)
+			b.Reset()
+			message.LightMarshalBinary(b)
+			client.Write(b.Bytes())
+		} else if strings.Contains(msg, "/name") {
+			clipName = strings.SplitAfterN(msg, ",s ", 2)[1]
 		}
 	}
 }
@@ -185,6 +176,9 @@ func websocketStart(w http.ResponseWriter, r *http.Request) {
 	ctx := c.CloseRead(context.Background())
 
 	if c.Write(ctx, websocket.MessageText, []byte("/message ,s "+clientMessage)) != nil {
+		return
+	}
+	if c.Write(ctx, websocket.MessageText, []byte("/name ,s "+clipName)) != nil {
 		return
 	}
 
