@@ -60,6 +60,8 @@ socket.addEventListener('message', function (event) {
         procMsg(data);
     } else if (data.includes("/refresh ")) {
         location.reload();
+    } else if (data.includes("/connect")) {
+        reset()
     } else if (data.includes("/stop ")) {
         socket.close();
     }
