@@ -80,15 +80,11 @@ func reset() {
 	message.LightMarshalBinary(b)
 	client.Write(b.Bytes())
 
-	fmt.Println(samples, posPrev, posIntervalBuffer, timeIntervalBuffer, estSizeBuffer)
-
 	samples = 0
 	posPrev = 0
 	posIntervalBuffer = []float32{0}
 	timeIntervalBuffer = []float32{0}
 	estSizeBuffer = []float32{0}
-
-	fmt.Println(samples, posPrev, posIntervalBuffer, timeIntervalBuffer, estSizeBuffer)
 
 }
 
@@ -102,8 +98,7 @@ func procPos(data string) {
 		pos = 1 - pos
 	}
 
-	if ((average(estSizeBuffer)*pos)/1000) < 70 && posPrev != 0 {
-		fmt.Println(average(estSizeBuffer), (average(estSizeBuffer) * pos))
+	if ((average(estSizeBuffer)*pos)/1000) < 10 && posPrev != 0 {
 		posPrev = 0
 	}
 
