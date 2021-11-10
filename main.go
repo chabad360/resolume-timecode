@@ -6,6 +6,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"fyne.io/fyne/v2/app"
 	"github.com/chabad360/go-osc/osc"
 	"github.com/go-playground/pure/v5"
 	"net"
@@ -21,11 +22,13 @@ var (
 	broadcast = &Distributor{
 		l: map[string]chan []byte{},
 	}
-	OSCOutPort    = "7001"
-	OSCPort       = "7000"
-	OSCAddr       = "127.0.0.1"
-	httpPort      = "8080"
-	clipPath      = "/composition/selectedclip"
+	a = app.NewWithID("me.chabad360.resolume-timecode")
+
+	OSCOutPort    = a.Preferences().StringWithFallback("OSCOutPort", "7001")
+	OSCPort       = a.Preferences().StringWithFallback("OSCPort", "7000")
+	OSCAddr       = a.Preferences().StringWithFallback("OSCAddr", "127.0.0.1")
+	httpPort      = a.Preferences().StringWithFallback("httpPort", "8080")
+	clipPath      = a.Preferences().StringWithFallback("clipPath", "/composition/selectedclip")
 	clientMessage = ""
 
 	//go:embed index.html

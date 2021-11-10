@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/data/validation"
@@ -25,7 +24,6 @@ var (
 )
 
 func gui() {
-	a := app.NewWithID("me.chabad360.resolume-timecode")
 	w := a.NewWindow("Timecode Monitor Server")
 	w.SetIcon(logoResource)
 
@@ -35,7 +33,7 @@ func gui() {
 	timeLeftLabel := widget.NewLabelWithData(timeLeftBinding)
 	clipLengthLabel := widget.NewLabelWithData(clipLengthBinding)
 	clipNameLabel := widget.NewLabelWithData(clipNameBinding)
-	resetButton := widget.NewButton("Refresh", reset)
+	resetButton := widget.NewButton("Reset Timecode", reset)
 	resetButton.Hide()
 
 	path := widget.NewEntry()
@@ -77,10 +75,15 @@ func gui() {
 	form.OnCancel = nil
 	form.OnSubmit = func() {
 		clipPath = path.Text
+		a.Preferences().SetString("clipPath", clipPath)
 		OSCOutPort = oscOutput.Text
+		a.Preferences().SetString("OSCOutPort", OSCOutPort)
 		OSCPort = oscInput.Text
+		a.Preferences().SetString("OSCPort", OSCPort)
 		OSCAddr = oscAddr.Text
+		a.Preferences().SetString("OSCAddr", OSCAddr)
 		httpPort = httpPortField.Text
+		a.Preferences().SetString("httpPort", httpPort)
 
 		clientMessage = template.HTMLEscapeString(messageField.Text)
 		pushClientMessage()
