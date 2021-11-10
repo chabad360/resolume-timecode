@@ -5,6 +5,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/data/validation"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
@@ -16,9 +17,10 @@ import (
 
 var (
 	//go:embed images/logo.png
-	logo         []byte
-	logoResource = fyne.NewStaticResource("logo", logo)
-	cList        []string
+	logo              []byte
+	logoResource      = fyne.NewStaticResource("logo", logo)
+	clipLengthBinding = binding.NewString()
+	timeLeftBinding   = binding.NewString()
 )
 
 func gui() {
@@ -28,6 +30,11 @@ func gui() {
 
 	infoLabel := widget.NewRichTextWithText("Server Stopped")
 	infoLabel.Wrapping = fyne.TextWrapOff
+
+	timeLeftLabel := widget.NewLabelWithData(timeLeftBinding)
+	clipLengthLabel := widget.NewLabelWithData(clipLengthBinding)
+	resetButton := widget.NewButton("Refresh", reset)
+	resetButton.Hide()
 
 	path := widget.NewEntry()
 	path.SetText(clipPath)
@@ -92,9 +99,11 @@ func gui() {
 		oscInput.Disable()
 		oscAddr.Disable()
 		httpPortField.Disable()
+		resetButton.Show()
 
 		form.OnCancel = func() {
 			infoLabel.ParseMarkdown("Stopping Server")
+			resetButton.Hide()
 			serverStop()
 			infoLabel.ParseMarkdown("Server Stopped")
 			form.SubmitText = "Start Server"
@@ -114,6 +123,6 @@ func gui() {
 		runtime.GC()
 	}
 
-	w.SetContent(container.NewGridWithRows(2, form, infoLabel))
+	w.SetContent(container.NewGridWithRows(2, form, container.NewBorder(infoLabel, container.NewGridWithColumns(3, timeLeftLabel, clipLengthLabel, resetButton), nil, nil)))
 	w.ShowAndRun()
 }
