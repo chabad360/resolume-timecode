@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"nhooyr.io/websocket"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -40,7 +39,6 @@ var (
 	running    bool
 	message    = &osc.Message{Arguments: []interface{}{"?"}}
 	client     *net.UDPConn
-	clipName   string
 	b          = new(bytes.Buffer)
 )
 
@@ -142,27 +140,13 @@ func listenOSC(conn net.PacketConn, wg *sync.WaitGroup) {
 			default:
 				continue
 			case *osc.Message:
-				handleMessage(p.String())
+				procMsg(p.String())
 
 			case *osc.Bundle:
 				for _, message := range p.Messages {
-					handleMessage(message.String())
+					procMsg(message.String())
 				}
 			}
-		}
-	}
-}
-
-func handleMessage(msg string) {
-	if strings.Contains(msg, clipPath) {
-		broadcast.Publish([]byte(msg[len(clipPath):]))
-		if strings.Contains(msg, "/connect") || strings.Contains(msg, "direction ") {
-			message.Address = fmt.Sprintf("%s/name", clipPath)
-			b.Reset()
-			message.LightMarshalBinary(b)
-			client.Write(b.Bytes())
-		} else if strings.Contains(msg, "/name") {
-			clipName = strings.SplitAfterN(msg, ",s ", 2)[1]
 		}
 	}
 }

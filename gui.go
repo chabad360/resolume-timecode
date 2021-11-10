@@ -18,6 +18,7 @@ var (
 	//go:embed images/logo.png
 	logo         []byte
 	logoResource = fyne.NewStaticResource("logo", logo)
+	cList        []string
 )
 
 func gui() {
@@ -26,7 +27,7 @@ func gui() {
 	w.SetIcon(logoResource)
 
 	infoLabel := widget.NewRichTextWithText("Server Stopped")
-	infoLabel.Wrapping = fyne.TextWrapBreak
+	infoLabel.Wrapping = fyne.TextWrapOff
 
 	path := widget.NewEntry()
 	path.SetText(clipPath)
@@ -83,6 +84,8 @@ func gui() {
 			return
 		}
 
+		reset()
+
 		infoLabel.ParseMarkdown(fmt.Sprintf("Server Running. Open your web browser to [http://%s:%s](http://%[1]s:%[2]s/) to view the timecode.\n", getIP().String(), httpPort))
 		form.SubmitText = "Update Server"
 		oscOutput.Disable()
@@ -101,6 +104,7 @@ func gui() {
 			httpPortField.Enable()
 
 			form.OnCancel = nil
+			reset()
 
 			form.Refresh()
 			runtime.GC()

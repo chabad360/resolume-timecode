@@ -95,12 +95,6 @@ function procName(data) {
 }
 
 function reset() {
-    samples            = 0;
-    posPrev            = 0;
-    posIntervalBuffer  = [0];
-    timeIntervalBuffer = [0];
-    estSizeBuffer      = [0];
-
     timecodeHours.innerHTML     = '00';
     timecodeMinutes.innerHTML   = '00';
     timecodeSeconds.innerHTML   = '00';
@@ -129,7 +123,7 @@ function procPos(msg, timeNow) {
         pos = multiplier - pos
     }
 
-    let t = ((average(estSizeBuffer)) * pos) / multiplier;
+    let t = (average(estSizeBuffer) * pos) / multiplier;
 
     if (t < 70) {
         posPrev = 0;
@@ -164,7 +158,7 @@ function procPos(msg, timeNow) {
 
     samples++;
 
-    t = ((average(estSizeBuffer)) * (multiplier - pos)) / multiplier;
+    t = (average(estSizeBuffer) * (multiplier - pos)) / multiplier;
 
     posPrev  = pos;
     timePrev = timeNow;
@@ -183,5 +177,4 @@ function procPos(msg, timeNow) {
         table.style.color = "#45ff45";
         tableBorder.style.borderColor = "#4b5457";
     }
-    // console.log(`pos: ${pos}\taverage: ${a}\ti: ${interval}\ttime: ${d}\ttimeAverage: ${ta}\ttimeActual: ${t}\ttimeTotal: ${average(totalArray)}\ttimeLeft: ${timeLeft}`);
-}
+  }
