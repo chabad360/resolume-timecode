@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"nhooyr.io/websocket"
+	"runtime"
 	"strconv"
 	"sync"
 	"time"
@@ -90,6 +91,17 @@ func serverStart() error {
 	wg.Add(1)
 	go func() {
 		httpServer.ListenAndServe()
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		for !running {
+		}
+		for running {
+			time.Sleep(time.Minute)
+			runtime.GC()
+		}
 		wg.Done()
 	}()
 
