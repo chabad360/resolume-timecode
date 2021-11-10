@@ -11,8 +11,8 @@ import (
 	"net"
 	"net/http"
 	"nhooyr.io/websocket"
+	"runtime"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -40,8 +40,8 @@ var (
 	running    bool
 	message    = &osc.Message{Arguments: []interface{}{"?"}}
 	client     *net.UDPConn
-	clipName   string
 	b          = new(bytes.Buffer)
+	t          = time.Tick(time.Minute)
 )
 
 func main() {
@@ -89,9 +89,48 @@ func serverStart() error {
 
 	httpServer = &http.Server{Addr: ":" + httpPort, Handler: p.Serve()}
 
-	wg.Add(1)
 	go func() {
+		wg.Add(1)
 		httpServer.ListenAndServe()
+		wg.Done()
+	}()
+
+	go func() {
+		wg.Add(1)
+		for !running {
+		}
+		for running {
+			select {
+			case <-t:
+				runtime.GC()
+			default:
+				time.Sleep(time.Millisecond * 100)
+			}
+		}
+		wg.Done()
+	}()
+
+	go func() {
+		wg.Add(1)
+		for !running {
+		}
+		for running {
+			time.Sleep(time.Millisecond * 100)
+			timeLeftBinding.Set(timeLeft)
+		}
+		timeLeftBinding.Set("00:00:00.000")
+		wg.Done()
+	}()
+
+	go func() {
+		wg.Add(1)
+		for !running {
+		}
+		for running {
+			time.Sleep(time.Millisecond * 110)
+			clipLengthBinding.Set("Clip Length: " + clipLength)
+		}
+		clipLengthBinding.Set("Clip Length: 0.000s")
 		wg.Done()
 	}()
 
@@ -142,27 +181,13 @@ func listenOSC(conn net.PacketConn, wg *sync.WaitGroup) {
 			default:
 				continue
 			case *osc.Message:
-				handleMessage(p.String())
+				procMsg(p.String())
 
 			case *osc.Bundle:
 				for _, message := range p.Messages {
-					handleMessage(message.String())
+					procMsg(message.String())
 				}
 			}
-		}
-	}
-}
-
-func handleMessage(msg string) {
-	if strings.Contains(msg, clipPath) {
-		broadcast.Publish([]byte(msg[len(clipPath):]))
-		if strings.Contains(msg, "/connect") || strings.Contains(msg, "direction ") {
-			message.Address = fmt.Sprintf("%s/name", clipPath)
-			b.Reset()
-			message.LightMarshalBinary(b)
-			client.Write(b.Bytes())
-		} else if strings.Contains(msg, "/name") {
-			clipName = strings.SplitAfterN(msg, ",s ", 2)[1]
 		}
 	}
 }

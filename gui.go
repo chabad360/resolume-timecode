@@ -5,6 +5,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/data/validation"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
@@ -16,8 +17,11 @@ import (
 
 var (
 	//go:embed images/logo.png
-	logo         []byte
-	logoResource = fyne.NewStaticResource("logo", logo)
+	logo              []byte
+	logoResource      = fyne.NewStaticResource("logo", logo)
+	clipLengthBinding = binding.NewString()
+	timeLeftBinding   = binding.NewString()
+	clipNameBinding   = binding.NewString()
 )
 
 func gui() {
@@ -26,7 +30,13 @@ func gui() {
 	w.SetIcon(logoResource)
 
 	infoLabel := widget.NewRichTextWithText("Server Stopped")
-	infoLabel.Wrapping = fyne.TextWrapBreak
+	infoLabel.Wrapping = fyne.TextWrapOff
+
+	timeLeftLabel := widget.NewLabelWithData(timeLeftBinding)
+	clipLengthLabel := widget.NewLabelWithData(clipLengthBinding)
+	clipNameLabel := widget.NewLabelWithData(clipNameBinding)
+	resetButton := widget.NewButton("Refresh", reset)
+	resetButton.Hide()
 
 	path := widget.NewEntry()
 	path.SetText(clipPath)
@@ -83,16 +93,21 @@ func gui() {
 			return
 		}
 
+		reset()
+
 		infoLabel.ParseMarkdown(fmt.Sprintf("Server Running. Open your web browser to [http://%s:%s](http://%[1]s:%[2]s/) to view the timecode.\n", getIP().String(), httpPort))
 		form.SubmitText = "Update Server"
 		oscOutput.Disable()
 		oscInput.Disable()
 		oscAddr.Disable()
 		httpPortField.Disable()
+		resetButton.Show()
 
 		form.OnCancel = func() {
 			infoLabel.ParseMarkdown("Stopping Server")
+			resetButton.Hide()
 			serverStop()
+			clipNameBinding.Set("Clip Name: None")
 			infoLabel.ParseMarkdown("Server Stopped")
 			form.SubmitText = "Start Server"
 			oscOutput.Enable()
@@ -101,6 +116,7 @@ func gui() {
 			httpPortField.Enable()
 
 			form.OnCancel = nil
+			reset()
 
 			form.Refresh()
 			runtime.GC()
@@ -110,6 +126,6 @@ func gui() {
 		runtime.GC()
 	}
 
-	w.SetContent(container.NewGridWithRows(2, form, infoLabel))
+	w.SetContent(container.NewGridWithRows(2, form, container.NewBorder(infoLabel, container.NewGridWithColumns(4, timeLeftLabel, clipLengthLabel, clipNameLabel, resetButton), nil, nil)))
 	w.ShowAndRun()
 }
