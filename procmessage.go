@@ -8,14 +8,11 @@ import (
 )
 
 var (
-	clipLength = "0.000s"
-)
-
-const multiplier = 100000000000 // This constant is used to avoid the mess that is floating point numbers.
-
-var (
 	clipName         = ""
 	directionForward = true
+
+	timeLeft   string
+	clipLength string
 
 	timePrev           = time.Now()
 	posPrev            float32
@@ -71,6 +68,7 @@ func procName(data string) {
 	data = strings.Split(data, ",s ")[1]
 	if data != clipName {
 		clipName = data
+		broadcast.Publish([]byte(fmt.Sprintf("/name ,s %s", clipName)))
 	}
 }
 
@@ -137,10 +135,13 @@ func procPos(data string) {
 	t := (average(estSizeBuffer) * (1 - pos)) / 1000
 
 	timeActual := time.UnixMilli(int64(t)).UTC()
-	message := fmt.Sprintf("/time ,s %02d:%02d:%02d:%03d", timeActual.Hour(), timeActual.Minute(), timeActual.Second(), timeActual.Nanosecond()/1000000)
-	clipLength = fmt.Sprintf("/length, %fs", average(estSizeBuffer)/1000000)
-	//broadcast.Publish([]byte(message))
-	//broadcast.Publish([]byte(clipLength))
-	fmt.Println(message, clipLength, samples, pos, currentPosInterval, currentTimeInterval, currentEstSize, posInterval, timeInterval, average(estSizeBuffer))
+	timeLeft = fmt.Sprintf("%02d:%02d:%02d.%03d", timeActual.Hour(), timeActual.Minute(), timeActual.Second(), timeActual.Nanosecond()/1000000)
+	clipLength = fmt.Sprintf("%.3fs", average(estSizeBuffer)/1000000)
+	message := fmt.Sprintf("/time ,ss %s %s", timeLeft, clipLength)
+	broadcast.Publish([]byte(message))
+
+	timeLeftBinding.Set(timeLeft)
+	clipLengthBinding.Set("Clip Length: " + clipLength)
+	//fmt.Println(message, clipLength, samples, pos, currentPosInterval, currentTimeInterval, currentEstSize, posInterval, timeInterval, average(estSizeBuffer))
 
 }
