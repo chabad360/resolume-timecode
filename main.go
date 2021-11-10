@@ -41,6 +41,7 @@ var (
 	message    = &osc.Message{Arguments: []interface{}{"?"}}
 	client     *net.UDPConn
 	b          = new(bytes.Buffer)
+	t          = time.Tick(time.Minute)
 )
 
 func main() {
@@ -99,8 +100,12 @@ func serverStart() error {
 		for !running {
 		}
 		for running {
-			time.Sleep(time.Minute)
-			runtime.GC()
+			select {
+			case <-t:
+				runtime.GC()
+			default:
+				time.Sleep(time.Millisecond * 100)
+			}
 		}
 		wg.Done()
 	}()
