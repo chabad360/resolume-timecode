@@ -66,11 +66,9 @@ func procDirection(data string) {
 
 func procName(data string) {
 	data = strings.Split(data, ",s ")[1]
-	if data != clipName {
-		clipName = data
-		clipNameBinding.Set("Clip Name: " + clipName)
-		broadcast.Publish([]byte(fmt.Sprintf("/name ,s %s", clipName)))
-	}
+	clipName = data
+	clipNameBinding.Set("Clip Name: " + clipName)
+	broadcast.Publish([]byte(fmt.Sprintf("/name ,s %s", clipName)))
 }
 
 func reset() {
