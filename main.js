@@ -7,18 +7,18 @@ const timecodeMinutes   = document.getElementById("timecode-minutes");
 const timecodeSeconds   = document.getElementById("timecode-seconds");
 const timecodeMS        = document.getElementById("timecode-ms");
 const timecodeClipName  = document.getElementById("clipname");
-const table             = document.getElementById('table');
-const tableBorder       = document.getElementById('tableborder');
+const table             = document.getElementById("table");
+const tableBorder       = document.getElementById("tableborder");
 const clipLength        = document.getElementById("ms");
-const status            = document.getElementById("status");
+const statusLabel       = document.getElementById("status");
 const message           = document.getElementById("msg");
 
 reset();
 
-socket.addEventListener('message', function (event) {
+socket.addEventListener("message", function (event) {
     let data    = event.data.toString();
 
-    status.innerHTML = "Server Running";
+    statusLabel.innerHTML = "Server Running";
 
     if (data.includes("/time ,ss ")) {
         procTime(data);
@@ -29,35 +29,35 @@ socket.addEventListener('message', function (event) {
     } else if (data.includes("/refresh ")) {
         location.reload();
     } else if (data.includes("/connect")) {
-        reset()
+        reset();
     } else if (data.includes("/stop ")) {
         socket.close();
     }
 });
 
-socket.addEventListener('close', function () {
-    status.innerHTML = "Server Stopped";
+socket.addEventListener("close", function () {
+    statusLabel.innerHTML = "Server Stopped";
 
     timecodeHours.innerHTML = "00";
     timecodeMinutes.innerHTML = "00";
     timecodeSeconds.innerHTML = "00";
     timecodeMS.innerHTML = "000";
-    clipLength.innerHTML = '0.000s'
+    clipLength.innerHTML = "0.000s";
 
     table.style.color = "#ff4545";
     tableBorder.style.borderColor = "#ff4545";
-})
+});
 
 function procName(data) {
     timecodeClipName.innerHTML = data.replace("/name ,s ", "");
 }
 
 function reset() {
-    timecodeHours.innerHTML     = '00';
-    timecodeMinutes.innerHTML   = '00';
-    timecodeSeconds.innerHTML   = '00';
-    timecodeMS.innerHTML        = '000';
-    clipLength.innerHTML        = '0.000s';
+    timecodeHours.innerHTML     = "00";
+    timecodeMinutes.innerHTML   = "00";
+    timecodeSeconds.innerHTML   = "00";
+    timecodeMS.innerHTML        = "000";
+    clipLength.innerHTML        = "0.000s";
 }
 
 async function procMsg(data) {
@@ -69,16 +69,14 @@ async function procMsg(data) {
     for (let i = 0; i < 3; i++) {
         message.style.color = "#ff4545";
         await new Promise(r => setTimeout(r, 500));
-        message.style.color = "#FDFBF7"
+        message.style.color = "#FDFBF7";
         await new Promise(r => setTimeout(r, 500));
     }
 }
 
-
-
 function procTime(data) {
     data = data.split(" ");
-    clipLength.innerHTML = data.pop();
+    clipLength.innerHTML = data.pop().toString();
 
     data = data.pop().split(":");
     timecodeHours.innerHTML     = data[0].substring(1);
