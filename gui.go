@@ -21,6 +21,7 @@ var (
 	logoResource      = fyne.NewStaticResource("logo", logo)
 	clipLengthBinding = binding.NewString()
 	timeLeftBinding   = binding.NewString()
+	clipNameBinding   = binding.NewString()
 )
 
 func gui() {
@@ -33,6 +34,7 @@ func gui() {
 
 	timeLeftLabel := widget.NewLabelWithData(timeLeftBinding)
 	clipLengthLabel := widget.NewLabelWithData(clipLengthBinding)
+	clipNameLabel := widget.NewLabelWithData(clipNameBinding)
 	resetButton := widget.NewButton("Refresh", reset)
 	resetButton.Hide()
 
@@ -105,6 +107,7 @@ func gui() {
 			infoLabel.ParseMarkdown("Stopping Server")
 			resetButton.Hide()
 			serverStop()
+			clipNameBinding.Set("Clip Name: None")
 			infoLabel.ParseMarkdown("Server Stopped")
 			form.SubmitText = "Start Server"
 			oscOutput.Enable()
@@ -123,6 +126,6 @@ func gui() {
 		runtime.GC()
 	}
 
-	w.SetContent(container.NewGridWithRows(2, form, container.NewBorder(infoLabel, container.NewGridWithColumns(3, timeLeftLabel, clipLengthLabel, resetButton), nil, nil)))
+	w.SetContent(container.NewGridWithRows(2, form, container.NewBorder(infoLabel, container.NewGridWithColumns(4, timeLeftLabel, clipLengthLabel, clipNameLabel, resetButton), nil, nil)))
 	w.ShowAndRun()
 }

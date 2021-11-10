@@ -88,20 +88,44 @@ func serverStart() error {
 
 	httpServer = &http.Server{Addr: ":" + httpPort, Handler: p.Serve()}
 
-	wg.Add(1)
 	go func() {
+		wg.Add(1)
 		httpServer.ListenAndServe()
 		wg.Done()
 	}()
 
-	wg.Add(1)
 	go func() {
+		wg.Add(1)
 		for !running {
 		}
 		for running {
 			time.Sleep(time.Minute)
 			runtime.GC()
 		}
+		wg.Done()
+	}()
+
+	go func() {
+		wg.Add(1)
+		for !running {
+		}
+		for running {
+			time.Sleep(time.Millisecond * 100)
+			timeLeftBinding.Set(timeLeft)
+		}
+		timeLeftBinding.Set("00:00:00.000")
+		wg.Done()
+	}()
+
+	go func() {
+		wg.Add(1)
+		for !running {
+		}
+		for running {
+			time.Sleep(time.Millisecond * 110)
+			clipLengthBinding.Set("Clip Length: " + clipLength)
+		}
+		clipLengthBinding.Set("Clip Length: 0.000s")
 		wg.Done()
 	}()
 

@@ -68,6 +68,7 @@ func procName(data string) {
 	data = strings.Split(data, ",s ")[1]
 	if data != clipName {
 		clipName = data
+		clipNameBinding.Set("Clip Name: " + clipName)
 		broadcast.Publish([]byte(fmt.Sprintf("/name ,s %s", clipName)))
 	}
 }
@@ -140,8 +141,6 @@ func procPos(data string) {
 	message := fmt.Sprintf("/time ,ss %s %s", timeLeft, clipLength)
 	broadcast.Publish([]byte(message))
 
-	timeLeftBinding.Set(timeLeft)
-	clipLengthBinding.Set("Clip Length: " + clipLength)
 	//fmt.Println(message, clipLength, samples, pos, currentPosInterval, currentTimeInterval, currentEstSize, posInterval, timeInterval, average(estSizeBuffer))
 
 }
