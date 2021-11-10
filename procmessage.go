@@ -134,7 +134,7 @@ func procPos(data string) {
 	t := (average(estSizeBuffer) * (1 - pos)) / 1000
 
 	timeActual := time.UnixMilli(int64(t)).UTC()
-	timeLeft = fmt.Sprintf("%02d:%02d:%02d.%03d", timeActual.Hour(), timeActual.Minute(), timeActual.Second(), timeActual.Nanosecond()/1000000)
+	timeLeft = fmt.Sprintf("-%02d:%02d:%02d.%03d", timeActual.Hour(), timeActual.Minute(), timeActual.Second(), timeActual.Nanosecond()/1000000)
 	clipLength = fmt.Sprintf("%.3fs", average(estSizeBuffer)/1000000)
 	message := fmt.Sprintf("/time ,ss %s %s", timeLeft, clipLength)
 	broadcast.Publish([]byte(message))

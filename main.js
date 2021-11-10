@@ -81,7 +81,7 @@ function procTime(data) {
     clipLength.innerHTML = data.pop();
 
     data = data.pop().split(":");
-    timecodeHours.innerHTML     = data[0];
+    timecodeHours.innerHTML     = data[0].substring(1);
     timecodeMinutes.innerHTML   = data[1];
     timecodeSeconds.innerHTML   = data[2].split(".")[0];
     timecodeMS.innerHTML        = data[2].split(".")[1];
