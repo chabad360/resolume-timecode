@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	fyne.io/fyne/v2 v2.1.1
-	github.com/chabad360/go-osc v0.0.0-20210502221644-78bb5c280252
+	github.com/chabad360/go-osc v0.0.0-20211110211026-9f478a12a4a9
 	github.com/go-playground/pure/v5 v5.2.0
 	nhooyr.io/websocket v1.8.7
 )

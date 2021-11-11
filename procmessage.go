@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"strconv"
+	"github.com/chabad360/go-osc/osc"
 	"strings"
 	"time"
 )
@@ -45,28 +45,27 @@ func isWithin(original float32, newNum float32, percent float32) bool {
 	return !((newNum > original+p || newNum < original-p) && original != 0)
 }
 
-func procMsg(data string) {
-	if strings.Contains(data, clipPath) {
-		if strings.Contains(data, "/position ,f ") {
+func procMsg(data *osc.Message) {
+	if strings.Contains(data.Address, clipPath) {
+		if strings.HasSuffix(data.Address, "/position") {
 			procPos(data)
-		} else if strings.Contains(data, "direction ,i ") {
+		} else if strings.HasSuffix(data.Address, "direction") {
 			procDirection(data)
-		} else if strings.Contains(data, "/name ,s ") {
+		} else if strings.HasSuffix(data.Address, "/name") {
 			procName(data)
-		} else if strings.Contains(data, "/connect") {
+		} else if strings.Contains(data.Address, "/connect") {
 			reset()
 		}
 	}
 }
 
-func procDirection(data string) {
-	directionForward = data[len(data)-1] != []byte("0")[0]
+func procDirection(data *osc.Message) {
+	directionForward = data.Arguments[0].(int32) != 0
 	reset()
 }
 
-func procName(data string) {
-	data = strings.Split(data, ",s ")[1]
-	clipName = data
+func procName(data *osc.Message) {
+	clipName = data.Arguments[0].(string)
 	clipNameBinding.Set("Clip Name: " + clipName)
 	broadcast.Publish([]byte(fmt.Sprintf("/name ,s %s", clipName)))
 }
@@ -85,11 +84,10 @@ func reset() {
 
 }
 
-func procPos(data string) {
+func procPos(data *osc.Message) {
 	timeNow := time.Now()
 
-	p, _ := strconv.ParseFloat(strings.Split(data, " ")[2], 32)
-	pos := float32(p)
+	pos := data.Arguments[0].(float32)
 
 	if !directionForward {
 		pos = 1 - pos
