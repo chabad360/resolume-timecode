@@ -61,7 +61,7 @@ func procMsg(data *osc.Message) {
 
 func procDirection(data *osc.Message) {
 	directionForward = data.Arguments[0].(int32) != 0
-	reset()
+	posPrev = 1 - posPrev
 }
 
 func procName(data *osc.Message) {
