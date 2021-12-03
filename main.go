@@ -9,7 +9,6 @@ import (
 	"fyne.io/fyne/v2/app"
 	"github.com/chabad360/go-osc/osc"
 	"github.com/go-playground/pure/v5"
-	"io"
 	"net"
 	"net/http"
 	"nhooyr.io/websocket"
@@ -40,7 +39,7 @@ var (
 	p          = pure.New()
 	httpServer *http.Server
 	conn       net.PacketConn
-	buf 	   = bytes.NewBuffer(make([]byte, 65535))
+	buf        = bytes.NewBuffer(make([]byte, 0, 65535))
 	wg         sync.WaitGroup
 	running    bool
 	message    = &osc.Message{Arguments: []interface{}{"?"}}
@@ -170,37 +169,16 @@ func getIP() net.IP {
 	return conn.LocalAddr().(*net.UDPAddr).IP
 }
 
-type eofReader struct {
-	net.PacketConn
-}
-
-func (g eofReader) Read(buf []byte) (int, error) {
-	n, _, err := g.ReadFrom(buf)
-	if err == nil {
-		return n, io.EOF
-	}
-	return n, err
-}
-
 func listenOSC(conn net.PacketConn, wg *sync.WaitGroup) {
 	defer wg.Done()
-	//c := eofReader{conn}
 	server := &osc.Server{}
 	for {
 		packet, err := server.ReceivePacket(conn)
-		//b.Reset()
-		//n, err := buf.ReadFrom(c)
 		if err != nil {
 			if errors.Is(err, net.ErrClosed) {
 				return
 			}
 		}
-		//
-		//var start int
-		//packet, err := osc.ReadPacket(buf, &start, int(n))
-		//if err != nil {
-		//	fmt.Println(err)
-		//}
 
 		if packet != nil {
 			switch p := packet.(type) {
@@ -210,8 +188,13 @@ func listenOSC(conn net.PacketConn, wg *sync.WaitGroup) {
 				procMsg(p)
 
 			case *osc.Bundle:
-				for _, message := range p.Messages {
-					procMsg(message)
+				for _, p := range p.Elements {
+					switch p := p.(type) {
+					case *osc.Message:
+						procMsg(p)
+					case *osc.Bundle:
+						panic("stop nesting bundles")
+					}
 				}
 			}
 		}
