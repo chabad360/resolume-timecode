@@ -84,7 +84,7 @@ function procTime(data) {
     timecodeSeconds.innerHTML   = data[2].split(".")[0];
     timecodeMS.innerHTML        = data[2].split(".")[1];
 
-    if (parseInt(data[2]) <= 11) {
+    if (parseInt(data[2]) <= 11 && parseInt(data[1]) < 1 && parseInt(data[0].substring(1)) < 1) {
         table.style.color = "#ff4545";
         tableBorder.style.borderColor = "#ff4545";
     } else {
