@@ -9,6 +9,8 @@ require (
 	nhooyr.io/websocket v1.8.7
 )
 
+//replace github.com/chabad360/go-osc => ../go-osc
+
 require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

@@ -39,13 +39,13 @@ var (
 	p          = pure.New()
 	httpServer *http.Server
 	conn       net.PacketConn
-	buf        = bytes.NewBuffer(make([]byte, 0, 65535))
-	wg         sync.WaitGroup
-	running    bool
-	message    = &osc.Message{Arguments: []interface{}{"?"}}
-	client     *net.UDPConn
-	b          = new(bytes.Buffer)
-	t          = time.Tick(time.Minute)
+	//buf        = bytes.NewBuffer(make([]byte, 0, 65535))
+	wg      sync.WaitGroup
+	running bool
+	message = &osc.Message{Arguments: []interface{}{"?"}}
+	client  *net.UDPConn
+	b       = new(bytes.Buffer)
+	t       = time.Tick(time.Minute)
 )
 
 func main() {
@@ -178,20 +178,23 @@ func listenOSC(conn net.PacketConn, wg *sync.WaitGroup) {
 			if errors.Is(err, net.ErrClosed) {
 				return
 			}
+			continue
 		}
 
 		if packet != nil {
-			switch p := packet.(type) {
+			fmt.Println(packet)
+			switch data := packet.(type) {
 			default:
 				continue
 			case *osc.Message:
-				procMsg(p)
+				fmt.Println(data)
+				procMsg(data)
 
 			case *osc.Bundle:
-				for _, p := range p.Elements {
-					switch p := p.(type) {
+				for _, elem := range data.Elements {
+					switch data := elem.(type) {
 					case *osc.Message:
-						procMsg(p)
+						procMsg(data)
 					case *osc.Bundle:
 						panic("stop nesting bundles")
 					}
