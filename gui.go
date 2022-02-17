@@ -33,6 +33,7 @@ func gui() {
 	timeLeftLabel := widget.NewLabelWithData(timeLeftBinding)
 	clipLengthLabel := widget.NewLabelWithData(clipLengthBinding)
 	clipNameLabel := widget.NewLabelWithData(clipNameBinding)
+	clipNameLabel.Wrapping = fyne.TextTruncate
 	resetButton := widget.NewButton("Reset Timecode", lightReset)
 	resetButton.Hide()
 
