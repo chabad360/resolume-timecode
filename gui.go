@@ -1,17 +1,17 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
+	"html/template"
+	"runtime"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/data/validation"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
-	"html/template"
-	"runtime"
-
-	_ "embed"
 )
 
 var (
@@ -33,7 +33,7 @@ func gui() {
 	timeLeftLabel := widget.NewLabelWithData(timeLeftBinding)
 	clipLengthLabel := widget.NewLabelWithData(clipLengthBinding)
 	clipNameLabel := widget.NewLabelWithData(clipNameBinding)
-	resetButton := widget.NewButton("Reset Timecode", reset)
+	resetButton := widget.NewButton("Reset Timecode", lightReset)
 	resetButton.Hide()
 
 	path := widget.NewEntry()

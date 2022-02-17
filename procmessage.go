@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/chabad360/go-osc/osc"
 	"strings"
 	"time"
+
+	"github.com/chabad360/go-osc/osc"
 )
 
 var (
@@ -21,8 +22,6 @@ var (
 	timeIntervalBuffer = []float32{0}
 	estSizeBuffer      = []float32{0}
 )
-
-//reset();
 
 func maxAppend(array []float32, value float32, limit int) []float32 {
 	array = append(array, value)
@@ -47,13 +46,16 @@ func isWithin(original float32, newNum float32, percent float32) bool {
 
 func procMsg(data *osc.Message) {
 	if strings.Contains(data.Address, clipPath) {
-		if strings.HasSuffix(data.Address, "/position") {
+		switch {
+		case strings.HasSuffix(data.Address, "/position"):
 			procPos(data)
-		} else if strings.HasSuffix(data.Address, "direction") {
+		case strings.HasSuffix(data.Address, "direction"):
 			procDirection(data)
-		} else if strings.HasSuffix(data.Address, "/name") {
+		case strings.HasSuffix(data.Address, "/name"):
 			procName(data)
-		} else if strings.Contains(data.Address, "/connect") {
+		case strings.Contains(data.Address, "/connect"):
+			reset()
+		case strings.Contains(data.Address, "/select"):
 			reset()
 		}
 	}
@@ -72,22 +74,35 @@ func procName(data *osc.Message) {
 
 func reset() {
 	message.Address = fmt.Sprintf("%s/name", clipPath)
-	b.Reset()
-	message.LightMarshalBinary(b)
-	client.Write(b.Bytes())
+	oscServer.WriteTo(message, OSCAddr+":"+OSCPort)
 
 	samples = 0
 	posPrev = 0
 	posIntervalBuffer = []float32{0}
 	timeIntervalBuffer = []float32{0}
 	estSizeBuffer = []float32{0}
+}
 
+func lightReset() {
+	message.Address = fmt.Sprintf("%s/name", clipPath)
+	oscServer.WriteTo(message, OSCAddr+":"+OSCPort)
+
+	samples = 0
+	//posPrev = 0
+	//posIntervalBuffer = []float32{0}
+	//timeIntervalBuffer = []float32{0}
+	estSizeBuffer = []float32{0}
 }
 
 func procPos(data *osc.Message) {
 	timeNow := time.Now()
 
 	pos := data.Arguments[0].(float32)
+	if posPrev == 0 || posPrev == pos {
+		posPrev = pos
+		timePrev = timeNow
+		return
+	}
 
 	if !directionForward {
 		pos = 1 - pos
@@ -134,8 +149,8 @@ func procPos(data *osc.Message) {
 	timeActual := time.UnixMilli(int64(t)).UTC()
 	timeLeft = fmt.Sprintf("-%02d:%02d:%02d.%03d", timeActual.Hour(), timeActual.Minute(), timeActual.Second(), timeActual.Nanosecond()/1000000)
 	clipLength = fmt.Sprintf("%.3fs", average(estSizeBuffer)/1000000)
-	message := fmt.Sprintf("/time ,ss %s %s", timeLeft, clipLength)
-	broadcast.Publish([]byte(message))
+	m := fmt.Sprintf("/time ,ss %s %s", timeLeft, clipLength)
+	broadcast.Publish([]byte(m))
 
 	//fmt.Println(message, clipLength, samples, pos, currentPosInterval, currentTimeInterval, currentEstSize, posInterval, timeInterval, average(estSizeBuffer))
 

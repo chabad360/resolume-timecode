@@ -1,21 +1,18 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"embed"
-	"errors"
-	"fmt"
+	"net"
+	"net/http"
+	"runtime"
+	"sync"
+	"time"
+
 	"fyne.io/fyne/v2/app"
 	"github.com/chabad360/go-osc/osc"
 	"github.com/go-playground/pure/v5"
-	"net"
-	"net/http"
 	"nhooyr.io/websocket"
-	"runtime"
-	"strconv"
-	"sync"
-	"time"
 )
 
 var (
@@ -38,14 +35,11 @@ var (
 
 	p          = pure.New()
 	httpServer *http.Server
-	conn       net.PacketConn
-	//buf        = bytes.NewBuffer(make([]byte, 0, 65535))
-	wg      sync.WaitGroup
-	running bool
-	message = &osc.Message{Arguments: []interface{}{"?"}}
-	client  *net.UDPConn
-	b       = new(bytes.Buffer)
-	t       = time.Tick(time.Minute)
+	oscServer  *osc.Server
+	wg         sync.WaitGroup
+	running    bool
+	message    = &osc.Message{Arguments: []interface{}{"?"}}
+	t          = time.Tick(time.Minute)
 )
 
 func main() {
@@ -63,44 +57,34 @@ func main() {
 }
 
 func serverStart() error {
-	var err error
 	if running {
 		return nil
 	}
 
-	port, _ := strconv.Atoi(OSCPort)
-	addr, err := net.ResolveUDPAddr("udp", fmt.Sprintf("%s:%d", OSCAddr, port))
-	if err != nil {
-		return err
-	}
-	client, err = net.DialUDP("udp", nil, addr)
-	if err != nil {
-		return err
-	}
-
-	conn, err = net.ListenPacket("udp", ":"+OSCOutPort)
-	if err != nil {
-		return fmt.Errorf("couldn't listen: %w", err)
-	}
+	oscServer = &osc.Server{Addr: ":" + OSCOutPort, Handler: handleOSC}
 
 	wg.Add(1)
-	go listenOSC(conn, &wg)
+	go func() {
+		defer wg.Done()
+		oscServer.ListenAndServe()
+	}()
 
-	message.Address = fmt.Sprintf("%s/name", clipPath)
-	b.Reset()
-	message.LightMarshalBinary(b)
-	client.Write(b.Bytes())
+	//message.Address = fmt.Sprintf("%s/name", clipPath)
+	//if _, err := oscServer.WriteTo(message, OSCAddr+":"+OSCPort); err != nil {
+	//	return err
+	//}
 
 	httpServer = &http.Server{Addr: ":" + httpPort, Handler: p.Serve()}
 
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
+		defer wg.Done()
 		httpServer.ListenAndServe()
-		wg.Done()
 	}()
 
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
+		defer wg.Done()
 		for !running {
 		}
 		for running {
@@ -111,31 +95,20 @@ func serverStart() error {
 				time.Sleep(time.Millisecond * 100)
 			}
 		}
-		wg.Done()
 	}()
 
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
-		for !running {
-		}
-		for running {
-			time.Sleep(time.Millisecond * 100)
-			timeLeftBinding.Set(timeLeft)
-		}
-		timeLeftBinding.Set("00:00:00.000")
-		wg.Done()
-	}()
-
-	go func() {
-		wg.Add(1)
+		defer wg.Done()
 		for !running {
 		}
 		for running {
 			time.Sleep(time.Millisecond * 110)
 			clipLengthBinding.Set("Clip Length: " + clipLength)
+			timeLeftBinding.Set(timeLeft)
 		}
+		timeLeftBinding.Set("00:00:00.000")
 		clipLengthBinding.Set("Clip Length: 0.000s")
-		wg.Done()
 	}()
 
 	running = true
@@ -147,9 +120,7 @@ func serverStop() {
 		broadcast.Publish([]byte("/stop "))
 		ctx, c := context.WithTimeout(context.Background(), time.Second*3)
 		err := httpServer.Shutdown(ctx)
-		if conn != nil {
-			conn.Close()
-		}
+		oscServer.Close()
 		if err != nil {
 			httpServer.Close()
 		}
@@ -169,36 +140,16 @@ func getIP() net.IP {
 	return conn.LocalAddr().(*net.UDPAddr).IP
 }
 
-func listenOSC(conn net.PacketConn, wg *sync.WaitGroup) {
-	defer wg.Done()
-	server := &osc.Server{}
-	for {
-		packet, err := server.ReceivePacket(conn)
-		if err != nil {
-			if errors.Is(err, net.ErrClosed) {
-				return
-			}
-			continue
-		}
+func handleOSC(packet osc.Packet, a net.Addr) {
+	if packet != nil {
+		switch data := packet.(type) {
+		case *osc.Message:
+			//fmt.Println(data)
+			procMsg(data)
 
-		if packet != nil {
-			fmt.Println(packet)
-			switch data := packet.(type) {
-			default:
-				continue
-			case *osc.Message:
-				fmt.Println(data)
-				procMsg(data)
-
-			case *osc.Bundle:
-				for _, elem := range data.Elements {
-					switch data := elem.(type) {
-					case *osc.Message:
-						procMsg(data)
-					case *osc.Bundle:
-						panic("stop nesting bundles")
-					}
-				}
+		case *osc.Bundle:
+			for _, elem := range data.Elements {
+				handleOSC(elem, a)
 			}
 		}
 	}
