@@ -4,9 +4,9 @@
   <p>View the time left for a playing clip on multiple devices.</p>
 </div>
 
-| <img alt="client" src="images/demo.png" width="70%"/> | <img alt="server" src="images/demo2.jpg" width="120%"/> |
-| :-----: | :----: |
-| _This screenshot is from firefox on linux, but you can even view this on your phone._ | _This is the server end of things, doesn't need to be run on the same device as Resolume_ |
+| <img alt="client" src="images/demo.png" width="65%"/> | <img alt="server" src="images/demo2.jpg" width="130%"/> |
+|:-----------------------------------------------------:|:-------------------------------------------------------:|
+|                _The client interface._                |               _The server end of things._               |
 
 ## How to use
 
@@ -18,16 +18,16 @@
 6. Profit.
 
 > Note: The precision should be within a few hundred milliseconds (usually 50ms), if it feels off double check that the clip length 
-(under `Advanced Settings` on the client) is correct. If it isn't, just refresh the page.
+(in the status bar on the bottom) is correct. If it isn't, just click the reset button.
 
 ### How to set the `Path` field
 
-| Clip to use | Example path |
-| :---------- | :----------- |
-| Selected Clip | `/composition/selectedclip` |
-| Specific Clip | `/composition/layers/1/clips/1` |
-| Selected Layer | `/composition/selectedlayer` |
-| Specific Layer | `/composition/layers/1` |
+| Clip to use    | Example path                    |
+|:---------------|:--------------------------------|
+| Selected Clip  | `/composition/selectedclip`     |
+| Specific Clip  | `/composition/layers/1/clips/1` |
+| Selected Layer | `/composition/selectedlayer`    |
+| Specific Layer | `/composition/layers/1`         |
 
 > Note: using a layer will cause the layer's name to be shown on the client instead of the clip name
 > (I'm not sure if there is a way to fix that).
@@ -43,17 +43,15 @@ Resolume outputs the position of the clip head through OSC, by calculating how m
 and the previous one, it's possible to calculate how long the clip is, and therefore how much time is left.
 Due to certain inconsistencies in the way this information is outputted, it's not as simple as it sounds.
 
-For the exact algorithm, check [main.js](https://github.com/chabad360/resolume-timecode/blob/master/main.js) 
-(specifically, [`procPos()`](https://github.com/chabad360/resolume-timecode/blob/master/main.js#L79)).
+For the exact algorithm, check [procmessage.go](https://github.com/chabad360/resolume-timecode/blob/master/procmessage.go) 
+(specifically, [`procPos()`](https://github.com/chabad360/resolume-timecode/blob/master/procmessage.go#L97)).
 
-Anyways, because we're running in a browser, we can't actually interact with OSC (as it works over the network),
-so this application also acts a proxy, translating the UDP packets to websocket.
-There is also a bit of processing done here to reduce the load on the device (it's around 300 messages a second, so the less the better).
+Anyway, because we're running in a browser, we can't actually interact with OSC (as it works over UDP),
+so this application also acts a proxy, running the algorithm on the messages and sending the timecode to the client.
 
 ## Known Issues
 
 - Uses around 60-70mb of RAM. Sorry, can't do much about that, at least it's better than an electron app.
-- Restarting Resolume while the server is running will cause it to crash. Will fix eventually.
 
 ## Building
 
