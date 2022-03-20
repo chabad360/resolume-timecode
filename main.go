@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"embed"
+	"fmt"
 	"net"
 	"net/http"
 	"runtime"
@@ -39,6 +40,7 @@ var (
 	wg         sync.WaitGroup
 	running    bool
 	message    = &osc.Message{Arguments: []interface{}{"?"}}
+	message2   = &osc.Message{Arguments: []interface{}{"?"}}
 	t          = time.Tick(time.Minute)
 )
 
@@ -104,7 +106,7 @@ func serverStart() error {
 		}
 		for running {
 			time.Sleep(time.Millisecond * 110)
-			clipLengthBinding.Set("Clip Length: " + clipLength)
+			clipLengthBinding.Set(fmt.Sprintf("Clip Length: %.3fs", clipLength))
 			timeLeftBinding.Set(timeLeft)
 		}
 		timeLeftBinding.Set("00:00:00.000")
