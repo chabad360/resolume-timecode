@@ -34,6 +34,7 @@ func gui() {
 	clipLengthLabel := widget.NewLabelWithData(clipLengthBinding)
 	clipNameLabel := widget.NewLabelWithData(clipNameBinding)
 	clipNameLabel.Wrapping = fyne.TextTruncate
+
 	resetButton := widget.NewButton("Reset Timecode", lightReset)
 	resetButton.Hide()
 
@@ -130,6 +131,8 @@ func gui() {
 		runtime.GC()
 	}
 
-	w.SetContent(container.NewGridWithRows(2, form, container.NewBorder(infoLabel, container.NewGridWithColumns(4, timeLeftLabel, clipLengthLabel, clipNameLabel, resetButton), nil, nil)))
+	w.SetContent(container.NewVSplit(form,
+		container.NewBorder(infoLabel,
+			container.NewGridWithColumns(4, timeLeftLabel, clipLengthLabel, clipNameLabel, resetButton), nil, nil)))
 	w.ShowAndRun()
 }
