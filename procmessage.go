@@ -47,13 +47,13 @@ func procDirection(data *osc.Message) {
 func procName(data *osc.Message) {
 	clipName = data.Arguments[0].(string)
 	clipNameBinding.Set("Clip Name: " + clipName)
-	broadcast.Publish([]byte(fmt.Sprintf("/name ,s %s", clipName)))
+	broadcast.Publish(osc.NewMessage("/name", clipName))
 }
 
 func procDuration(data *osc.Message) {
 	clipLength = (data.Arguments[0].(float32) * 604800) + 0.001
 	clipLengthBinding.Set(fmt.Sprintf("Clip Length: %.3fs", clipLength))
-	broadcast.Publish([]byte(fmt.Sprintf("/duration ,f %f", clipLength)))
+	broadcast.Publish(osc.NewMessage("/duration", clipLength))
 }
 
 func reset() {
@@ -91,9 +91,9 @@ func procPos(data *osc.Message) {
 	t := (clipLength * 1000) * (1 - pos)
 
 	timeActual := time.UnixMilli(int64(t)).UTC()
-	timeLeft = fmt.Sprintf("-%02d:%02d:%02d.%03d", timeActual.Hour(), timeActual.Minute(), timeActual.Second(), timeActual.Nanosecond()/1000000)
-	m := fmt.Sprintf("/time ,ss %s %.3fs", timeLeft, clipLength)
-	broadcast.Publish([]byte(m))
+
+	broadcast.Publish(osc.NewMessage("/time", fmt.Sprintf("-%02d:%02d:%02d.%03d", timeActual.Hour(), timeActual.Minute(), timeActual.Second(), timeActual.Nanosecond()/1000000), fmt.Sprintf("%.3fs", clipLength)))
+	broadcast.Send()
 
 	//fmt.Println(message, clipLength, samples, pos, currentPosInterval, currentTimeInterval, currentEstSize, posInterval, timeInterval, average(estSizeBuffer))
 

@@ -12,7 +12,6 @@ import (
 
 	"fyne.io/fyne/v2/app"
 	"github.com/chabad360/go-osc/osc"
-	"github.com/go-playground/pure/v5"
 	"nhooyr.io/websocket"
 )
 
@@ -32,9 +31,11 @@ var (
 	//go:embed index.html
 	//go:embed main.js
 	//go:embed images/favicon.png
+	//go:embed osc.min.js
+	//go:embed osc.min.js.map
 	fs embed.FS
 
-	p          = pure.New()
+	m          = http.NewServeMux()
 	httpServer *http.Server
 	oscServer  *osc.Server
 	wg         sync.WaitGroup
@@ -48,10 +49,12 @@ func main() {
 	//pr := profile.Start(profile.MemProfile, profile.ProfilePath("."), profile.NoShutdownHook)
 	//defer pr.Stop()
 
-	p.Get("/ws", websocketStart)
-	p.Get("/", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
-	p.Get("/main.js", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
-	p.Get("/images/favicon.png", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
+	m.HandleFunc("/", websocketStart)
+	//m.HandleFunc("/", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
+	m.HandleFunc("/main.js", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
+	m.HandleFunc("/osc.min.js", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
+	m.HandleFunc("/osc.min.js.map", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
+	m.HandleFunc("/images/favicon.png", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
 
 	gui()
 
@@ -76,7 +79,7 @@ func serverStart() error {
 	//	return err
 	//}
 
-	httpServer = &http.Server{Addr: ":" + httpPort, Handler: p.Serve()}
+	httpServer = &http.Server{Addr: ":" + httpPort, Handler: m}
 
 	wg.Add(1)
 	go func() {
@@ -119,7 +122,8 @@ func serverStart() error {
 
 func serverStop() {
 	if running {
-		broadcast.Publish([]byte("/stop "))
+		broadcast.Publish(osc.NewMessage("/stop"))
+		broadcast.Send()
 		ctx, c := context.WithTimeout(context.Background(), time.Second*3)
 		err := httpServer.Shutdown(ctx)
 		oscServer.Close()
@@ -133,7 +137,7 @@ func serverStop() {
 }
 
 func getIP() net.IP {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
+	conn, err := net.Dial("udp", "8.8.8.8:80") //TODO: fix this
 	if err != nil {
 		panic(err)
 	}
@@ -146,7 +150,6 @@ func handleOSC(packet osc.Packet, a net.Addr) {
 	if packet != nil {
 		switch data := packet.(type) {
 		case *osc.Message:
-			//fmt.Println(data)
 			procMsg(data)
 
 		case *osc.Bundle:
@@ -158,10 +161,14 @@ func handleOSC(packet osc.Packet, a net.Addr) {
 }
 
 func pushClientMessage() {
-	broadcast.Publish([]byte("/message ,s " + clientMessage))
+	broadcast.Publish(osc.NewMessage("/message", clientMessage))
 }
 
 func websocketStart(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get("Upgrade") == "" {
+		http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP(w, r)
+		return
+	}
 	c, err := websocket.Accept(w, r, nil)
 	if err != nil {
 		return
@@ -170,10 +177,13 @@ func websocketStart(w http.ResponseWriter, r *http.Request) {
 
 	ctx := c.CloseRead(context.Background())
 
-	if c.Write(ctx, websocket.MessageText, []byte("/message ,s "+clientMessage)) != nil {
-		return
-	}
-	if c.Write(ctx, websocket.MessageText, []byte("/name ,s "+clipName)) != nil {
+	//m, _ := osc.NewMessage("/open").MarshalBinary()
+	//if c.Write(ctx, websocket.MessageBinary, m) != nil {
+	//	return
+	//}
+
+	b, _ := osc.NewBundle(osc.NewMessage("/message", clientMessage), osc.NewMessage("/name", clipName)).MarshalBinary()
+	if c.Write(ctx, websocket.MessageBinary, b) != nil {
 		return
 	}
 
@@ -186,7 +196,7 @@ func websocketStart(w http.ResponseWriter, r *http.Request) {
 			c.Close(websocket.StatusNormalClosure, "")
 			return
 		case m := <-l:
-			if c.Write(ctx, websocket.MessageText, m) != nil {
+			if c.Write(ctx, websocket.MessageBinary, m) != nil {
 				//log.Println(err)
 				return
 			}

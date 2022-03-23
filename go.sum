@@ -4,8 +4,6 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/BurntSushi/toml v0.4.1/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
 github.com/Kodeworks/golang-image-ico v0.0.0-20141118225523-73f0f4cfade9/go.mod h1:7uhhqiBaR4CpN0k9rMjOtjpcfGd6DG2m04zQxKnWQ0I=
 github.com/akavel/rsrc v0.8.0/go.mod h1:uLoCtb9J+EyAqh+26kdrTgmzRBFPGOolLWKpdxkKq+c=
-github.com/chabad360/go-osc v0.0.0-20220216233102-8894d29d9fea h1:ngHxpP0GUblhyt2DWIHvaBRPTM8VB8XkYJ81TEIJGTs=
-github.com/chabad360/go-osc v0.0.0-20220216233102-8894d29d9fea/go.mod h1:SxhoJ/QyHpv+WPTqoLtIhjKZMIy0x3QQRdwQ6Ug3nk4=
 github.com/chabad360/go-osc v0.0.0-20220217020417-1229c4fc60a5 h1:TflojXcP1trvcO79pbZfZGqBYhNnSC9hC4saFFhWBzc=
 github.com/chabad360/go-osc v0.0.0-20220217020417-1229c4fc60a5/go.mod h1:SxhoJ/QyHpv+WPTqoLtIhjKZMIy0x3QQRdwQ6Ug3nk4=
 github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsrgA7czyZG/E6dU=

@@ -64,7 +64,7 @@
 <details style="text-align: left; margin-left: 3em;">
     <summary style="font-size:1.25em;">Advanced Settings</summary>
     <div>Clip Length: <strong id="ms"></strong></div>
-    <div>Server Status: <strong id="status"></strong></div>
+    <div>Server Status: <strong id="status">Server Stopped</strong></div>
     <br/>
     <input type="checkbox" id="checkbox-minus" checked onclick="showHide()">
     <label for="checkbox-minus">Show minus</label>
@@ -78,7 +78,8 @@
     <p>Checkout this tool at <a href="https://github.com/chabad360/resolume-timecode">chabad360/resolume-timecode</a></p>
 </details>
 
-<script src="main.js"></script>
+<script src="osc.min.js" type="module"></script>
+<script src="main.js" type="module"></script>
 <script type="text/javascript">
     const checkboxminus = document.getElementById("checkbox-minus");
     const checkboxhours = document.getElementById("checkbox-hours");
