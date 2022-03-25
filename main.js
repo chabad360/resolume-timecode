@@ -13,12 +13,14 @@ function main(){
     osc.on('/refresh', () => location.reload());
     osc.on('/connect', () => reset());
     osc.on('/stop', () => plugin.close());
+    osc.on('/tminus', (message) => procTminus(message));
     osc.on('close', () => close());
 
     const timecodeHours = document.getElementById("timecode-hours");
     const timecodeMinutes = document.getElementById("timecode-minutes");
     const timecodeSeconds = document.getElementById("timecode-seconds");
     const timecodeMS = document.getElementById("timecode-ms");
+    const timecodeMinus = document.getElementsByClassName("minus");
     const timecodeClipName = document.getElementById("clipname");
     const table = document.getElementById("table");
     const tableBorder = document.getElementById("tableborder");
@@ -44,6 +46,10 @@ function main(){
 
     function procName(data) {
         timecodeClipName.innerHTML = data.args[0];
+    }
+
+    function procTminus(data) {
+        data.args[0] === true ? timecodeMinus[0].innerHTML = "-" : timecodeMinus[0].innerHTML = '+'
     }
 
     function reset() {

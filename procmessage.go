@@ -88,6 +88,10 @@ func procPos(data *osc.Message) {
 
 	posPrev = pos
 
+	if clipInvert {
+		pos = 1 - pos
+	}
+
 	t := (clipLength * 1000) * (1 - pos)
 
 	timeActual := time.UnixMilli(int64(t)).UTC()

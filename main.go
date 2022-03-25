@@ -27,6 +27,7 @@ var (
 	httpPort      = a.Preferences().StringWithFallback("httpPort", "8080")
 	clipPath      = a.Preferences().StringWithFallback("clipPath", "/composition/selectedclip")
 	clientMessage = ""
+	clipInvert    = a.Preferences().BoolWithFallback("clipInvert", false)
 
 	//go:embed index.html
 	//go:embed main.js
@@ -73,11 +74,6 @@ func serverStart() error {
 		defer wg.Done()
 		oscServer.ListenAndServe()
 	}()
-
-	//message.Address = fmt.Sprintf("%s/name", clipPath)
-	//if _, err := oscServer.WriteTo(message, OSCAddr+":"+OSCPort); err != nil {
-	//	return err
-	//}
 
 	httpServer = &http.Server{Addr: ":" + httpPort, Handler: m}
 
@@ -182,7 +178,7 @@ func websocketStart(w http.ResponseWriter, r *http.Request) {
 	//	return
 	//}
 
-	b, _ := osc.NewBundle(osc.NewMessage("/message", clientMessage), osc.NewMessage("/name", clipName)).MarshalBinary()
+	b, _ := osc.NewBundle(osc.NewMessage("/message", clientMessage), osc.NewMessage("/name", clipName), osc.NewMessage("/tminus", !clipInvert)).MarshalBinary()
 	if c.Write(ctx, websocket.MessageBinary, b) != nil {
 		return
 	}
