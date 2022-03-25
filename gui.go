@@ -71,13 +71,23 @@ func gui() {
 
 	form := &widget.Form{
 		Items: []*widget.FormItem{
-			{Text: "Path", Widget: path, HintText: "OSC Path for clip to listen to"},
-			{Text: "OSC Input Port", Widget: oscInput, HintText: "OSC Input port (usually 7000)"},
-			{Text: "OSC Output Port", Widget: oscOutput, HintText: "OSC Output port (usually 7001) Note: If you have multiple services using Resolume OSC make use the correct broadcast address."},
-			{Text: "OSC Host Address", Widget: oscAddr, HintText: "IP address of device that's running Resolume (make sure to open the OSC input port in your firewall)"},
-			{Text: "HTTP Server Port", Widget: httpPortField, HintText: "The port to run the browser interface on"},
-			{Text: "Message to client", Widget: messageField, HintText: "A message to send to all clients"},
-			{Text: "Use T-", Widget: invertField, HintText: "Use T- instead of T+"},
+			{Widget: container.NewAppTabs(
+				container.NewTabItem("Server Settings", &widget.Form{
+					Items: []*widget.FormItem{
+						{Text: "OSC Input Port", Widget: oscInput, HintText: "OSC Input port (usually 7000)"},
+						{Text: "OSC Output Port", Widget: oscOutput, HintText: "OSC Output port (usually 7001) Note: If you have multiple services using Resolume OSC make use the correct broadcast address."},
+						{Text: "OSC Host Address", Widget: oscAddr, HintText: "IP address of device that's running Resolume (make sure to open the OSC input port in your firewall)"},
+						{Text: "HTTP Server Port", Widget: httpPortField, HintText: "The port to run the browser interface on"},
+					},
+				}),
+				container.NewTabItem("Client Settings", &widget.Form{
+					Items: []*widget.FormItem{
+						{Text: "Path", Widget: path, HintText: "OSC Path for clip to listen to"},
+						{Text: "Message to client", Widget: messageField, HintText: "A message to send to all clients"},
+						{Text: "Use T-", Widget: invertField, HintText: "Use T- instead of T+"},
+					},
+				})),
+			},
 		},
 		SubmitText: "Start Server",
 		CancelText: "Stop Server",
