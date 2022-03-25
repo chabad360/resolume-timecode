@@ -39,9 +39,10 @@ func gui() {
 	resetButton := widget.NewButton("Reset Timecode", lightReset)
 	resetButton.Hide()
 
-	path := widget.NewEntry()
+	path := widget.NewSelectEntry([]string{"", "/composition/selectedclip", "/composition/layers/1/clips/1", "/composition/selectedlayer", "/composition/layers/1"})
 	path.SetText(clipPath)
-	path.Validator = validation.NewRegexp(`^[^\?\,\[\]\{\}\#\ ]*$`, "not a valid OSC path")
+	path.SetPlaceHolder("Path to clip (/composition/...)")
+	path.Validator = validation.NewRegexp(`^[^\?\,\[\]\{\}\#\s]+$`, "not a valid OSC path")
 
 	oscOutput := widget.NewEntry()
 	oscOutput.SetText(OSCOutPort)
@@ -95,6 +96,12 @@ func gui() {
 
 	form.OnCancel = nil
 	form.OnSubmit = func() {
+		if err := path.Validate(); err != nil {
+			form.Refresh()
+			runtime.GC()
+			return
+		}
+
 		clipPath = path.Text
 		a.Preferences().SetString("clipPath", clipPath)
 		OSCOutPort = oscOutput.Text
