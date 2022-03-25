@@ -3,9 +3,8 @@ module github.com/chabad360/resolume-timecode
 go 1.17
 
 require (
-	fyne.io/fyne/v2 v2.1.1
+	fyne.io/fyne/v2 v2.1.4
 	github.com/chabad360/go-osc v0.0.0-20220217020417-1229c4fc60a5
-	github.com/go-playground/pure/v5 v5.2.0
 	nhooyr.io/websocket v1.8.7
 )
 
@@ -17,8 +16,6 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/go-gl/gl v0.0.0-20211025173605-bda47ffaa784 // indirect
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20211024062804-40e447a793be // indirect
-	github.com/go-playground/form/v4 v4.2.0 // indirect
-	github.com/go-playground/pkg/v5 v5.3.0 // indirect
 	github.com/godbus/dbus/v5 v5.0.6 // indirect
 	github.com/goki/freetype v0.0.0-20181231101311-fa8a33aabaff // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
