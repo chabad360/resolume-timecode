@@ -3,6 +3,7 @@ package main
 import (
 	_ "embed"
 	"fmt"
+	"fyne.io/fyne/v2/theme"
 	"github.com/chabad360/go-osc/osc"
 	"html/template"
 	"runtime"
@@ -24,6 +25,88 @@ var (
 	clipNameBinding   = binding.NewString()
 )
 
+var _ fyne.Widget = (*ValidateTabs)(nil)
+var _ fyne.Validatable = (*ValidateTabs)(nil)
+
+type ValidateTabs struct {
+	*container.AppTabs
+	f   func(error)
+	err error
+}
+
+func (v *ValidateTabs) Validate() error {
+	for _, item := range v.Items {
+		if w, ok := item.Content.(fyne.Validatable); ok {
+			if err := w.Validate(); err != nil {
+				//v.SetValidationError(err)
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (v *ValidateTabs) SetValidationError(err error) {
+	if err == nil && v.err == nil {
+		return
+	}
+
+	if (err == nil && v.err != nil) || (v.err == nil && err != nil) ||
+		err.Error() != v.err.Error() {
+		if err == nil {
+			for _, item := range v.Items {
+				if w, ok := item.Content.(fyne.Validatable); ok {
+					w.SetOnValidationChanged(func(_ error) {}) // prevent recursion
+					e := w.Validate()
+					w.SetOnValidationChanged(func(err error) {
+						if err != nil {
+							item.Icon = theme.ErrorIcon()
+						} else {
+							item.Icon = theme.ConfirmIcon()
+						}
+						v.Refresh()
+						v.SetValidationError(err)
+					})
+					if e != nil {
+						err = e
+						break
+					}
+				}
+			}
+		}
+		v.err = err
+
+		if v.f != nil {
+			v.f(err)
+		}
+
+		v.Refresh()
+	}
+}
+
+func (v *ValidateTabs) SetOnValidationChanged(f func(error)) {
+	if f != nil {
+		v.f = f
+	}
+}
+
+func NewValidateTabs(tabs ...*container.TabItem) *ValidateTabs {
+	v := &ValidateTabs{AppTabs: container.NewAppTabs(tabs...)}
+	for _, item := range v.Items {
+		if w, ok := item.Content.(fyne.Validatable); ok {
+			w.SetOnValidationChanged(func(err error) {
+				if err != nil {
+					item.Icon = theme.ErrorIcon()
+				} else {
+					item.Icon = theme.ConfirmIcon()
+				}
+				v.Refresh()
+				v.SetValidationError(err)
+			})
+		}
+	}
+	return v
+}
 func gui() {
 	w := a.NewWindow("Timecode Monitor Server")
 	w.SetIcon(logoResource)
@@ -46,11 +129,11 @@ func gui() {
 
 	oscOutput := widget.NewEntry()
 	oscOutput.SetText(OSCOutPort)
-	oscOutput.Validator = validation.NewRegexp(`^[0-9]*$`, "not a valid port")
+	oscOutput.Validator = validation.NewRegexp(`^[0-9]+$`, "not a valid port")
 
 	oscInput := widget.NewEntry()
 	oscInput.SetText(OSCPort)
-	oscInput.Validator = validation.NewRegexp(`^[0-9]*$`, "not a valid port")
+	oscInput.Validator = validation.NewRegexp(`^[0-9]+$`, "not a valid port")
 
 	oscAddr := widget.NewEntry()
 	oscAddr.SetText(OSCAddr)
@@ -58,22 +141,24 @@ func gui() {
 
 	httpPortField := widget.NewEntry()
 	httpPortField.SetText(httpPort)
-	httpPortField.Validator = validation.NewRegexp(`^[0-9]*$`, "not a valid port")
+	httpPortField.Validator = validation.NewRegexp(`^[0-9]+$`, "not a valid port")
 
 	messageField := widget.NewEntry()
 	messageField.SetText(clientMessage)
 
-	invertField := widget.NewCheck("", func(b bool) {
-		clipInvert = !b
-		a.Preferences().SetBool("clipInvert", clipInvert)
-		broadcast.Publish(osc.NewMessage("/tminus", !clipInvert))
-	})
+	invertField := widget.NewCheck("", nil)
 	invertField.SetChecked(!clipInvert)
 
 	form := &widget.Form{
 		Items: []*widget.FormItem{
-			{Widget: container.NewAppTabs(
-				container.NewTabItem("Server Settings", &widget.Form{
+			{Widget: NewValidateTabs(container.NewTabItemWithIcon("Client Settings", theme.ConfirmIcon(), &widget.Form{
+				Items: []*widget.FormItem{
+					{Text: "Path", Widget: path, HintText: "OSC Path for clip to listen to"},
+					{Text: "Message to client", Widget: messageField, HintText: "A message to send to all clients"},
+					{Text: "Use T-", Widget: invertField, HintText: "Use T- instead of T+"},
+				},
+			}),
+				container.NewTabItemWithIcon("Server Settings", theme.ConfirmIcon(), &widget.Form{
 					Items: []*widget.FormItem{
 						{Text: "OSC Input Port", Widget: oscInput, HintText: "OSC Input port (usually 7000)"},
 						{Text: "OSC Output Port", Widget: oscOutput, HintText: "OSC Output port (usually 7001) Note: If you have multiple services using Resolume OSC make use the correct broadcast address."},
@@ -81,13 +166,7 @@ func gui() {
 						{Text: "HTTP Server Port", Widget: httpPortField, HintText: "The port to run the browser interface on"},
 					},
 				}),
-				container.NewTabItem("Client Settings", &widget.Form{
-					Items: []*widget.FormItem{
-						{Text: "Path", Widget: path, HintText: "OSC Path for clip to listen to"},
-						{Text: "Message to client", Widget: messageField, HintText: "A message to send to all clients"},
-						{Text: "Use T-", Widget: invertField, HintText: "Use T- instead of T+"},
-					},
-				})),
+			),
 			},
 		},
 		SubmitText: "Start Server",
@@ -96,12 +175,6 @@ func gui() {
 
 	form.OnCancel = nil
 	form.OnSubmit = func() {
-		if err := path.Validate(); err != nil {
-			form.Refresh()
-			runtime.GC()
-			return
-		}
-
 		clipPath = path.Text
 		a.Preferences().SetString("clipPath", clipPath)
 		OSCOutPort = oscOutput.Text
@@ -114,7 +187,11 @@ func gui() {
 		a.Preferences().SetString("httpPort", httpPort)
 
 		clientMessage = template.HTMLEscapeString(messageField.Text)
-		pushClientMessage()
+		broadcast.Publish(osc.NewMessage("/message", clientMessage))
+
+		clipInvert = !invertField.Checked
+		a.Preferences().SetBool("clipInvert", clipInvert)
+		broadcast.Publish(osc.NewMessage("/tminus", !clipInvert))
 
 		infoLabel.ParseMarkdown("Starting Server")
 

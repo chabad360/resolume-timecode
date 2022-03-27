@@ -25,7 +25,7 @@ var (
 	OSCPort       = a.Preferences().StringWithFallback("OSCPort", "7000")
 	OSCAddr       = a.Preferences().StringWithFallback("OSCAddr", "127.0.0.1")
 	httpPort      = a.Preferences().StringWithFallback("httpPort", "8080")
-	clipPath      = a.Preferences().StringWithFallback("clipPath", "/composition/selectedclip")
+	clipPath      = a.Preferences().StringWithFallback("clipPath", "")
 	clientMessage = ""
 	clipInvert    = a.Preferences().BoolWithFallback("clipInvert", false)
 
@@ -154,10 +154,6 @@ func handleOSC(packet osc.Packet, a net.Addr) {
 			}
 		}
 	}
-}
-
-func pushClientMessage() {
-	broadcast.Publish(osc.NewMessage("/message", clientMessage))
 }
 
 func websocketStart(w http.ResponseWriter, r *http.Request) {
