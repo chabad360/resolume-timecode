@@ -112,7 +112,7 @@ func gui() {
 	w.SetIcon(logoResource)
 
 	infoLabel := widget.NewRichTextWithText("Server Stopped")
-	infoLabel.Wrapping = fyne.TextWrapOff
+	infoLabel.Wrapping = fyne.TextWrapWord
 
 	timeLeftLabel := widget.NewLabelWithData(timeLeftBinding)
 	clipLengthLabel := widget.NewLabelWithData(clipLengthBinding)
@@ -203,7 +203,14 @@ func gui() {
 
 		reset()
 
-		infoLabel.ParseMarkdown(fmt.Sprintf("Server Running. Open your web browser to [http://%s:%s](http://%[1]s:%[2]s/) to view the timecode.\n", getIP().String(), httpPort))
+		ip, err := externalIP()
+		if err != nil {
+			dialog.ShowError(err, w)
+			infoLabel.ParseMarkdown("Server Errored")
+			return
+		}
+
+		infoLabel.ParseMarkdown(fmt.Sprintf("Server Running. Open your web browser to [http://%s:%s](http://%[1]s:%[2]s/) (or any other address for this device) to view the timecode.\n", ip, httpPort))
 		form.SubmitText = "Update Server"
 		oscOutput.Disable()
 		oscInput.Disable()

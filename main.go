@@ -132,14 +132,42 @@ func serverStop() {
 	}
 }
 
-func getIP() net.IP {
-	conn, err := net.Dial("udp", "8.8.8.8:80") //TODO: fix this
+// https://stackoverflow.com/questions/23558425/how-do-i-get-the-local-ip-address-in-go
+func externalIP() (string, error) {
+	ifaces, err := net.Interfaces()
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	defer conn.Close()
-
-	return conn.LocalAddr().(*net.UDPAddr).IP
+	for _, iface := range ifaces {
+		if iface.Flags&net.FlagUp == 0 {
+			continue // interface down
+		}
+		if iface.Flags&net.FlagLoopback != 0 {
+			continue // loopback interface
+		}
+		addrs, err := iface.Addrs()
+		if err != nil {
+			return "", err
+		}
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+			if ip == nil || ip.IsLoopback() {
+				continue
+			}
+			ip = ip.To4()
+			if ip == nil {
+				continue // not an ipv4 address
+			}
+			return ip.String(), nil
+		}
+	}
+	return "", fmt.Errorf("are you connected to the network?")
 }
 
 func handleOSC(packet osc.Packet, a net.Addr) {
