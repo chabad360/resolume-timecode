@@ -96,7 +96,8 @@ func procPos(data *osc.Message) {
 
 	timeActual := time.UnixMilli(int64(t)).UTC()
 
-	broadcast.Publish(osc.NewMessage("/time", fmt.Sprintf("-%02d:%02d:%02d.%03d", timeActual.Hour(), timeActual.Minute(), timeActual.Second(), timeActual.Nanosecond()/1000000), fmt.Sprintf("%.3fs", clipLength)))
+	timeLeft = fmt.Sprintf("-%02d:%02d:%02d.%03d", timeActual.Hour(), timeActual.Minute(), timeActual.Second(), timeActual.Nanosecond()/1000000)
+	broadcast.Publish(osc.NewMessage("/time", timeLeft, fmt.Sprintf("%.3fs", clipLength)))
 	broadcast.Send()
 
 	//fmt.Println(message, clipLength, samples, pos, currentPosInterval, currentTimeInterval, currentEstSize, posInterval, timeInterval, average(estSizeBuffer))

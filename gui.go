@@ -2,18 +2,18 @@ package main
 
 import (
 	_ "embed"
+	"errors"
 	"fmt"
-	"fyne.io/fyne/v2/theme"
-	"github.com/chabad360/go-osc/osc"
-	"html/template"
-	"runtime"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/data/validation"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"github.com/chabad360/go-osc/osc"
+	"html/template"
+	"runtime"
 )
 
 var (
@@ -64,7 +64,6 @@ func (v *ValidateTabs) SetValidationError(err error) {
 						} else {
 							item.Icon = theme.ConfirmIcon()
 						}
-						v.Refresh()
 						v.SetValidationError(err)
 					})
 					if e != nil {
@@ -79,8 +78,6 @@ func (v *ValidateTabs) SetValidationError(err error) {
 		if v.f != nil {
 			v.f(err)
 		}
-
-		v.Refresh()
 	}
 }
 
@@ -91,7 +88,7 @@ func (v *ValidateTabs) SetOnValidationChanged(f func(error)) {
 }
 
 func NewValidateTabs(tabs ...*container.TabItem) *ValidateTabs {
-	v := &ValidateTabs{AppTabs: container.NewAppTabs(tabs...)}
+	v := &ValidateTabs{AppTabs: container.NewAppTabs(tabs...), err: errors.New("validation failed")}
 	for _, item := range v.Items {
 		if w, ok := item.Content.(fyne.Validatable); ok {
 			w.SetOnValidationChanged(func(err error) {
@@ -100,7 +97,6 @@ func NewValidateTabs(tabs ...*container.TabItem) *ValidateTabs {
 				} else {
 					item.Icon = theme.ConfirmIcon()
 				}
-				v.Refresh()
 				v.SetValidationError(err)
 			})
 		}
@@ -211,7 +207,7 @@ func gui() {
 		}
 
 		infoLabel.ParseMarkdown(fmt.Sprintf("Server Running. Open your web browser to [http://%s:%s](http://%[1]s:%[2]s/) (or any other address for this device) to view the timecode.\n", ip, httpPort))
-		form.SubmitText = "Update Server"
+		form.SubmitText = "Update Settings"
 		oscOutput.Disable()
 		oscInput.Disable()
 		oscAddr.Disable()
