@@ -134,6 +134,7 @@ func serverStop() {
 
 // https://stackoverflow.com/questions/23558425/how-do-i-get-the-local-ip-address-in-go
 func externalIP() (string, error) {
+	isLoopback := false
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		return "", err
@@ -143,6 +144,7 @@ func externalIP() (string, error) {
 			continue // interface down
 		}
 		if iface.Flags&net.FlagLoopback != 0 {
+			isLoopback = true
 			continue // loopback interface
 		}
 		addrs, err := iface.Addrs()
@@ -158,6 +160,7 @@ func externalIP() (string, error) {
 				ip = v.IP
 			}
 			if ip == nil || ip.IsLoopback() {
+				isLoopback = true
 				continue
 			}
 			ip = ip.To4()
@@ -167,7 +170,10 @@ func externalIP() (string, error) {
 			return ip.String(), nil
 		}
 	}
-	return "", fmt.Errorf("are you connected to the network?")
+	if isLoopback { // if there is nothing other than the loopback interface, then we'll use that.
+		return "127.0.0.1", nil
+	}
+	return "", fmt.Errorf("no network interfaces found")
 }
 
 func handleOSC(packet osc.Packet, a net.Addr) {
