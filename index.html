@@ -66,6 +66,7 @@
     <div>Clip Length: <strong id="ms">0.000s</strong></div>
     <div>Server Status: <strong id="status">Server Stopped</strong></div>
     <br/>
+    <div>
     <input type="checkbox" id="checkbox-minus" checked onclick="showHide()">
     <label for="checkbox-minus">Show minus/plus</label>
 
@@ -74,7 +75,12 @@
 
     <input type="checkbox" id="checkbox-ms" checked onclick="showHide()">
     <label for="checkbox-ms">Show Milliseconds</label>
+    </div>
     <br />
+    <div>
+    <input type="number" id="padding" value="0" min="0" step="1" onchange="updatePadding()" style="width:3em;border-radius:5px;margin-left:2px;">
+    <label style="margin-left:-0.5em;" for="padding">em Padding</label>
+    </div>
     <p>Checkout this tool at <a href="https://github.com/chabad360/resolume-timecode">chabad360/resolume-timecode</a></p>
 </details>
 
@@ -104,12 +110,18 @@
     }
 
     function showHide() {
-        checkboxminus.checked === false ? hide(minus) : show(minus)
-        checkboxhours.checked === false ? hide(hours) : show(hours)
-        checkboxms.checked === false ? hide(ms) : show(ms)
+        checkboxminus.checked === false ? hide(minus) : show(minus);
+        checkboxhours.checked === false ? hide(hours) : show(hours);
+        checkboxms.checked === false ? hide(ms) : show(ms);
     }
 
-    showHide()
+    function updatePadding() {
+        let padding = document.getElementById("padding").value;
+        document.getElementById("msg").style.paddingTop = padding + "em";
+    }
+
+    updatePadding();
+    showHide();
 </script>
 </body>
 </html>
