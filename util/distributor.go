@@ -1,4 +1,4 @@
-package main
+package util
 
 import (
 	"github.com/chabad360/go-osc/osc"

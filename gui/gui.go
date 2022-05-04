@@ -1,8 +1,7 @@
-package main
+package gui
 
 import (
 	_ "embed"
-	"errors"
 	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -17,7 +16,7 @@ import (
 )
 
 var (
-	//go:embed images/logo.png
+	//go:embed ../images/logo.png
 	logo              []byte
 	logoResource      = fyne.NewStaticResource("logo", logo)
 	clipLengthBinding = binding.NewString()
@@ -25,85 +24,7 @@ var (
 	clipNameBinding   = binding.NewString()
 )
 
-var _ fyne.Widget = (*ValidateTabs)(nil)
-var _ fyne.Validatable = (*ValidateTabs)(nil)
-
-type ValidateTabs struct {
-	*container.AppTabs
-	f   func(error)
-	err error
-}
-
-func (v *ValidateTabs) Validate() error {
-	for _, item := range v.Items {
-		if w, ok := item.Content.(fyne.Validatable); ok {
-			if err := w.Validate(); err != nil {
-				//v.setValidationError(err)
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func (v *ValidateTabs) SetValidationError(err error) {
-	if err == nil && v.err == nil {
-		return
-	}
-
-	if (err == nil && v.err != nil) || (v.err == nil && err != nil) ||
-		err.Error() != v.err.Error() {
-		if err == nil {
-			for _, item := range v.Items {
-				if w, ok := item.Content.(fyne.Validatable); ok {
-					w.SetOnValidationChanged(func(_ error) {}) // prevent recursion
-					e := w.Validate()
-					w.SetOnValidationChanged(func(err error) {
-						if err != nil {
-							item.Icon = theme.ErrorIcon()
-						} else {
-							item.Icon = theme.ConfirmIcon()
-						}
-						v.SetValidationError(err)
-					})
-					if e != nil {
-						err = e
-						break
-					}
-				}
-			}
-		}
-		v.err = err
-
-		if v.f != nil {
-			v.f(err)
-		}
-	}
-}
-
-func (v *ValidateTabs) SetOnValidationChanged(f func(error)) {
-	if f != nil {
-		v.f = f
-	}
-}
-
-func NewValidateTabs(tabs ...*container.TabItem) *ValidateTabs {
-	v := &ValidateTabs{AppTabs: container.NewAppTabs(tabs...), err: errors.New("validation failed")}
-	for _, item := range v.Items {
-		if w, ok := item.Content.(fyne.Validatable); ok {
-			w.SetOnValidationChanged(func(err error) {
-				if err != nil {
-					item.Icon = theme.ErrorIcon()
-				} else {
-					item.Icon = theme.ConfirmIcon()
-				}
-				v.SetValidationError(err)
-			})
-		}
-	}
-	return v
-}
-func gui() {
+func Gui(a fyne.App) {
 	w := a.NewWindow("Timecode Monitor Server")
 	w.SetIcon(logoResource)
 
@@ -115,35 +36,35 @@ func gui() {
 	clipNameLabel := widget.NewLabelWithData(clipNameBinding)
 	clipNameLabel.Wrapping = fyne.TextTruncate
 
-	resetButton := widget.NewButton("Reset Timecode", reset)
+	resetButton := widget.NewButton("Reset Timecode", main.reset)
 	resetButton.Hide()
 
 	path := widget.NewSelectEntry([]string{"", "/composition/selectedclip", "/composition/layers/1/clips/1", "/composition/selectedlayer", "/composition/layers/1"})
-	path.SetText(clipPath)
+	path.SetText(main.clipPath)
 	path.SetPlaceHolder("Path to clip (/composition/...)")
 	path.Validator = validation.NewRegexp(`^[^\?\,\[\]\{\}\#\s]+$`, "not a valid OSC path")
 
 	oscOutput := widget.NewEntry()
-	oscOutput.SetText(OSCOutPort)
+	oscOutput.SetText(main.OSCOutPort)
 	oscOutput.Validator = validation.NewRegexp(`^[0-9]+$`, "not a valid port")
 
 	oscInput := widget.NewEntry()
-	oscInput.SetText(OSCPort)
+	oscInput.SetText(main.OSCPort)
 	oscInput.Validator = validation.NewRegexp(`^[0-9]+$`, "not a valid port")
 
 	oscAddr := widget.NewEntry()
-	oscAddr.SetText(OSCAddr)
+	oscAddr.SetText(main.OSCAddr)
 	oscAddr.Validator = validation.NewRegexp(`^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$`, "not a valid IP address")
 
 	httpPortField := widget.NewEntry()
-	httpPortField.SetText(httpPort)
+	httpPortField.SetText(main.httpPort)
 	httpPortField.Validator = validation.NewRegexp(`^[0-9]+$`, "not a valid port")
 
 	messageField := widget.NewEntry()
-	messageField.SetText(clientMessage)
+	messageField.SetText(main.clientMessage)
 
 	invertField := widget.NewCheck("", nil)
-	invertField.SetChecked(!clipInvert)
+	invertField.SetChecked(!main.clipInvert)
 
 	form := &widget.Form{
 		Items: []*widget.FormItem{
@@ -171,42 +92,42 @@ func gui() {
 
 	form.OnCancel = nil
 	form.OnSubmit = func() {
-		clipPath = path.Text
-		a.Preferences().SetString("clipPath", clipPath)
-		OSCOutPort = oscOutput.Text
-		a.Preferences().SetString("OSCOutPort", OSCOutPort)
-		OSCPort = oscInput.Text
-		a.Preferences().SetString("OSCPort", OSCPort)
-		OSCAddr = oscAddr.Text
-		a.Preferences().SetString("OSCAddr", OSCAddr)
-		httpPort = httpPortField.Text
-		a.Preferences().SetString("httpPort", httpPort)
+		main.clipPath = path.Text
+		main.a.Preferences().SetString("clipPath", main.clipPath)
+		main.OSCOutPort = oscOutput.Text
+		main.a.Preferences().SetString("OSCOutPort", main.OSCOutPort)
+		main.OSCPort = oscInput.Text
+		main.a.Preferences().SetString("OSCPort", main.OSCPort)
+		main.OSCAddr = oscAddr.Text
+		main.a.Preferences().SetString("OSCAddr", main.OSCAddr)
+		main.httpPort = httpPortField.Text
+		main.a.Preferences().SetString("httpPort", main.httpPort)
 
-		clientMessage = template.HTMLEscapeString(messageField.Text)
-		broadcast.Publish(osc.NewMessage("/message", clientMessage))
+		main.clientMessage = template.HTMLEscapeString(messageField.Text)
+		main.broadcast.Publish(osc.NewMessage("/message", main.clientMessage))
 
-		clipInvert = !invertField.Checked
-		a.Preferences().SetBool("clipInvert", clipInvert)
-		broadcast.Publish(osc.NewMessage("/tminus", !clipInvert))
+		main.clipInvert = !invertField.Checked
+		main.a.Preferences().SetBool("clipInvert", main.clipInvert)
+		main.broadcast.Publish(osc.NewMessage("/tminus", !main.clipInvert))
 
 		infoLabel.ParseMarkdown("Starting Server")
 
-		if err := serverStart(); err != nil {
+		if err := main.serverStart(); err != nil {
 			dialog.ShowError(err, w)
 			infoLabel.ParseMarkdown("Server Errored")
 			return
 		}
 
-		reset()
+		main.reset()
 
-		ip, err := externalIP()
+		ip, err := main.externalIP()
 		if err != nil {
 			dialog.ShowError(err, w)
 			infoLabel.ParseMarkdown("Server Errored")
 			return
 		}
 
-		infoLabel.ParseMarkdown(fmt.Sprintf("Server Running. Open your web browser to [http://%s:%s](http://%[1]s:%[2]s/) (or any other address for this device) to view the timecode.\n", ip, httpPort))
+		infoLabel.ParseMarkdown(fmt.Sprintf("Server Running. Open your web browser to [http://%s:%s](http://%[1]s:%[2]s/) (or any other address for this device) to view the timecode.\n", ip, main.httpPort))
 		form.SubmitText = "Update Settings"
 		oscOutput.Disable()
 		oscInput.Disable()
@@ -217,7 +138,7 @@ func gui() {
 		form.OnCancel = func() {
 			infoLabel.ParseMarkdown("Stopping Server")
 			resetButton.Hide()
-			serverStop()
+			main.serverStop()
 			clipNameBinding.Set("Clip Name: None")
 			infoLabel.ParseMarkdown("Server Stopped")
 			form.SubmitText = "Start Server"
@@ -227,7 +148,7 @@ func gui() {
 			httpPortField.Enable()
 
 			form.OnCancel = nil
-			reset()
+			main.reset()
 
 			form.Refresh()
 			runtime.GC()

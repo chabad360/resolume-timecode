@@ -1,7 +1,9 @@
-package main
+package server
 
 import (
 	"fmt"
+	"github.com/chabad360/resolume-timecode/gui"
+	"resolume-timecode"
 	"strings"
 	"time"
 
@@ -19,7 +21,7 @@ var (
 )
 
 func procMsg(data *osc.Message) {
-	if strings.HasPrefix(data.Address, clipPath) {
+	if strings.HasPrefix(data.Address, main.clipPath) {
 		switch {
 		case strings.HasSuffix(data.Address, "/position"):
 			procPos(data)
@@ -46,14 +48,14 @@ func procDirection(data *osc.Message) {
 
 func procName(data *osc.Message) {
 	clipName = data.Arguments[0].(string)
-	clipNameBinding.Set("Clip Name: " + clipName)
-	broadcast.Publish(osc.NewMessage("/name", clipName))
+	gui.clipNameBinding.Set("Clip Name: " + clipName)
+	main.broadcast.Publish(osc.NewMessage("/name", clipName))
 }
 
 func procDuration(data *osc.Message) {
 	clipLength = (data.Arguments[0].(float32) * 604800) + 0.001
-	clipLengthBinding.Set(fmt.Sprintf("Clip Length: %.3fs", clipLength))
-	broadcast.Publish(osc.NewMessage("/duration", clipLength))
+	gui.clipLengthBinding.Set(fmt.Sprintf("Clip Length: %.3fs", clipLength))
+	main.broadcast.Publish(osc.NewMessage("/duration", clipLength))
 }
 
 func reset() {
@@ -63,9 +65,9 @@ func reset() {
 }
 
 func lightReset() {
-	message.Address = clipPath + "/name"
-	message2.Address = clipPath + "/transport/position/behaviour/duration"
-	if _, err := oscServer.WriteTo(osc.NewBundle(message, message2), OSCAddr+":"+OSCPort); err != nil {
+	main.message.Address = main.clipPath + "/name"
+	main.message2.Address = main.clipPath + "/transport/position/behaviour/duration"
+	if _, err := main.oscServer.WriteTo(osc.NewBundle(main.message, main.message2), main.OSCAddr+":"+main.OSCPort); err != nil {
 		fmt.Println(err)
 	}
 }
@@ -90,7 +92,7 @@ func procPos(data *osc.Message) {
 
 	posPrev = pos
 
-	if clipInvert {
+	if main.clipInvert {
 		pos = 1 - pos
 	}
 
@@ -99,8 +101,8 @@ func procPos(data *osc.Message) {
 	timeActual := time.UnixMilli(int64(t)).UTC()
 
 	timeLeft = fmt.Sprintf("-%02d:%02d:%02d.%03d", timeActual.Hour(), timeActual.Minute(), timeActual.Second(), timeActual.Nanosecond()/1000000)
-	broadcast.Publish(osc.NewMessage("/time", timeLeft, fmt.Sprintf("%.3fs", clipLength)))
-	broadcast.Send()
+	main.broadcast.Publish(osc.NewMessage("/time", timeLeft, fmt.Sprintf("%.3fs", clipLength)))
+	main.broadcast.Send()
 
 	//fmt.Println(message, clipLength, samples, pos, currentPosInterval, currentTimeInterval, currentEstSize, posInterval, timeInterval, average(estSizeBuffer))
 

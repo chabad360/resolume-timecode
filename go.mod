@@ -1,4 +1,4 @@
-module github.com/chabad360/resolume-timecode
+module resolume-timecode
 
 go 1.17
 
