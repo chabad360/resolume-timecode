@@ -1,23 +1,19 @@
 package main
 
 import (
+	_ "embed"
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"resolume-timecode/config"
 	"resolume-timecode/gui"
 )
 
 var (
-	//	broadcast = &util.Distributor{
-	//		l: map[string]chan []byte{},
-	//	}
 	a = app.NewWithID("me.chabad360.resolume-timecode")
 
-	OSCOutPort    = a.Preferences().StringWithFallback("OSCOutPort", "7001")
-	OSCPort       = a.Preferences().StringWithFallback("OSCPort", "7000")
-	OSCAddr       = a.Preferences().StringWithFallback("OSCAddr", "127.0.0.1")
-	httpPort      = a.Preferences().StringWithFallback("httpPort", "8080")
-	clipPath      = a.Preferences().StringWithFallback("clipPath", "")
-	clientMessage = ""
-	clipInvert    = a.Preferences().BoolWithFallback("clipInvert", false)
+	//go:embed images/logo.png
+	logo []byte
+
 	//
 	//	//go:embed services/clients/http/index.html
 	//	//go:embed services/clients/http/main.js
@@ -40,5 +36,7 @@ func main() {
 	//pr := profile.Start(profile.MemProfile, profile.ProfilePath("."), profile.NoShutdownHook)
 	//defer pr.Stop()
 
-	gui.gui()
+	config.Init(a)
+
+	gui.Gui(a, fyne.NewStaticResource("logo", logo))
 }

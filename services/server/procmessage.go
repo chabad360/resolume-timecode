@@ -58,7 +58,7 @@ func procDuration(data *osc.Message) {
 	main.broadcast.Publish(osc.NewMessage("/duration", clipLength))
 }
 
-func reset() {
+func Reset() {
 	lightReset()
 
 	posPrev = 0

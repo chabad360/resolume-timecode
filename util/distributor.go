@@ -12,6 +12,12 @@ type Distributor struct {
 	bM sync.Mutex
 }
 
+func NewDistributor() *Distributor {
+	return &Distributor{
+		l: make(map[string]chan []byte),
+	}
+}
+
 func (d *Distributor) Listen(key string) <-chan []byte {
 	ch := make(chan []byte)
 	d.m.Lock()
@@ -44,6 +50,19 @@ func (d *Distributor) Publish(m *osc.Message) {
 	}
 
 	d.b.Elements = append(d.b.Elements, m)
+
+	d.bM.Unlock()
+}
+
+func (d *Distributor) PublishMultipleAndSend(m ...osc.Packet) {
+	d.bM.Lock()
+
+	if d.b == nil {
+		d.b = &osc.Bundle{Timetag: osc.NewImmediateTimetag()}
+	}
+
+	d.b.Elements = m
+	d.Send()
 
 	d.bM.Unlock()
 }
