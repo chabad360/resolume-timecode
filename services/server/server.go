@@ -1,8 +1,14 @@
 package server
 
 import (
+	"context"
 	"github.com/chabad360/go-osc/osc"
 	"net"
+	"resolume-timecode/config"
+)
+
+var (
+	oscServer *osc.Server
 )
 
 //func serverStart() error {
@@ -67,8 +73,23 @@ import (
 //	}
 //}
 
-func Start() error {
+func Start(c context.Context, start func(), done func()) error {
+	oscServer = &osc.Server{Addr: ":" + config.GetString(config.OSCOutPort), Handler: handleOSC}
 
+	go func() {
+		start()
+		defer done()
+		oscServer.ListenAndServe()
+	}()
+
+	go func() {
+		select {
+		case <-c.Done():
+			oscServer.Close()
+		}
+	}()
+
+	return nil
 }
 
 func handleOSC(packet osc.Packet, a net.Addr) {

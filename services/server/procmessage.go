@@ -2,8 +2,8 @@ package server
 
 import (
 	"fmt"
-	"github.com/chabad360/resolume-timecode/gui"
-	"resolume-timecode"
+	"resolume-timecode/config"
+	"resolume-timecode/services/clients"
 	"strings"
 	"time"
 
@@ -18,10 +18,25 @@ var (
 
 	clipLength float32
 	posPrev    float32
+
+	message  = &osc.Message{Arguments: []interface{}{"?"}}
+	message2 = &osc.Message{Arguments: []interface{}{"?"}}
 )
 
+func Reset() {
+	clipPath := config.GetString(config.ClipPath)
+
+	message.Address = clipPath + "/name"
+	message2.Address = clipPath + "/transport/position/behaviour/duration"
+	if _, err := oscServer.WriteTo(osc.NewBundle(message, message2), config.GetString(config.OSCAddr)+":"+config.GetString(config.OSCPort)); err != nil {
+		fmt.Println(err)
+	}
+
+	posPrev = 0
+}
+
 func procMsg(data *osc.Message) {
-	if strings.HasPrefix(data.Address, main.clipPath) {
+	if strings.HasPrefix(data.Address, config.GetString(config.ClipPath)) {
 		switch {
 		case strings.HasSuffix(data.Address, "/position"):
 			procPos(data)
@@ -32,9 +47,9 @@ func procMsg(data *osc.Message) {
 		case strings.HasSuffix(data.Address, "/duration"):
 			procDuration(data)
 		case strings.HasSuffix(data.Address, "/connect"):
-			reset()
+			Reset()
 		case strings.Contains(data.Address, "/select"):
-			reset()
+			Reset()
 		}
 	}
 }
@@ -48,28 +63,12 @@ func procDirection(data *osc.Message) {
 
 func procName(data *osc.Message) {
 	clipName = data.Arguments[0].(string)
-	gui.clipNameBinding.Set("Clip Name: " + clipName)
-	main.broadcast.Publish(osc.NewMessage("/name", clipName))
+	clients.Publish(osc.NewMessage("/name", clipName))
 }
 
 func procDuration(data *osc.Message) {
 	clipLength = (data.Arguments[0].(float32) * 604800) + 0.001
-	gui.clipLengthBinding.Set(fmt.Sprintf("Clip Length: %.3fs", clipLength))
-	main.broadcast.Publish(osc.NewMessage("/duration", clipLength))
-}
-
-func Reset() {
-	lightReset()
-
-	posPrev = 0
-}
-
-func lightReset() {
-	main.message.Address = main.clipPath + "/name"
-	main.message2.Address = main.clipPath + "/transport/position/behaviour/duration"
-	if _, err := main.oscServer.WriteTo(osc.NewBundle(main.message, main.message2), main.OSCAddr+":"+main.OSCPort); err != nil {
-		fmt.Println(err)
-	}
+	clients.Publish(osc.NewMessage("/duration", clipLength))
 }
 
 func procPos(data *osc.Message) {
@@ -79,7 +78,7 @@ func procPos(data *osc.Message) {
 		pos = 1 - pos
 	}
 
-	if posPrev == 0 || posPrev == pos || pos < 0.002 {
+	if posPrev == 0 || posPrev == pos || (pos < posPrev && posPrev > 0.9 && pos < 0.1) {
 		posPrev = pos
 		return
 	}
@@ -92,7 +91,7 @@ func procPos(data *osc.Message) {
 
 	posPrev = pos
 
-	if main.clipInvert {
+	if config.GetBool(config.ClipInvert) {
 		pos = 1 - pos
 	}
 
@@ -101,8 +100,8 @@ func procPos(data *osc.Message) {
 	timeActual := time.UnixMilli(int64(t)).UTC()
 
 	timeLeft = fmt.Sprintf("-%02d:%02d:%02d.%03d", timeActual.Hour(), timeActual.Minute(), timeActual.Second(), timeActual.Nanosecond()/1000000)
-	main.broadcast.Publish(osc.NewMessage("/time", timeLeft, fmt.Sprintf("%.3fs", clipLength)))
-	main.broadcast.Send()
+	clients.Publish(osc.NewMessage("/time", timeLeft, fmt.Sprintf("%.3fs", clipLength)))
+	clients.Send()
 
 	//fmt.Println(message, clipLength, samples, pos, currentPosInterval, currentTimeInterval, currentEstSize, posInterval, timeInterval, average(estSizeBuffer))
 

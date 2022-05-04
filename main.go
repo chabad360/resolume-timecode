@@ -27,8 +27,6 @@ var (
 	//	oscServer  *osc.Server
 	//	wg         sync.WaitGroup
 	//	running    bool
-	//	message    = &osc.Message{Arguments: []interface{}{"?"}}
-	//	message2   = &osc.Message{Arguments: []interface{}{"?"}}
 	//	t          = time.Tick(time.Minute)
 )
 
