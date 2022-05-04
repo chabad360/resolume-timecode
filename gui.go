@@ -38,7 +38,7 @@ func (v *ValidateTabs) Validate() error {
 	for _, item := range v.Items {
 		if w, ok := item.Content.(fyne.Validatable); ok {
 			if err := w.Validate(); err != nil {
-				//v.SetValidationError(err)
+				//v.setValidationError(err)
 				return err
 			}
 		}
@@ -115,7 +115,7 @@ func gui() {
 	clipNameLabel := widget.NewLabelWithData(clipNameBinding)
 	clipNameLabel.Wrapping = fyne.TextTruncate
 
-	resetButton := widget.NewButton("Reset Timecode", lightReset)
+	resetButton := widget.NewButton("Reset Timecode", reset)
 	resetButton.Hide()
 
 	path := widget.NewSelectEntry([]string{"", "/composition/selectedclip", "/composition/layers/1/clips/1", "/composition/selectedlayer", "/composition/layers/1"})

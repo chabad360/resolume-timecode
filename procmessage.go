@@ -19,7 +19,7 @@ var (
 )
 
 func procMsg(data *osc.Message) {
-	if strings.Contains(data.Address, clipPath) {
+	if strings.HasPrefix(data.Address, clipPath) {
 		switch {
 		case strings.HasSuffix(data.Address, "/position"):
 			procPos(data)
@@ -29,7 +29,7 @@ func procMsg(data *osc.Message) {
 			procName(data)
 		case strings.HasSuffix(data.Address, "/duration"):
 			procDuration(data)
-		case strings.Contains(data.Address, "/connect"):
+		case strings.HasSuffix(data.Address, "/connect"):
 			reset()
 		case strings.Contains(data.Address, "/select"):
 			reset()
@@ -65,7 +65,9 @@ func reset() {
 func lightReset() {
 	message.Address = clipPath + "/name"
 	message2.Address = clipPath + "/transport/position/behaviour/duration"
-	oscServer.WriteTo(osc.NewBundle(message, message2), OSCAddr+":"+OSCPort)
+	if _, err := oscServer.WriteTo(osc.NewBundle(message, message2), OSCAddr+":"+OSCPort); err != nil {
+		fmt.Println(err)
+	}
 }
 
 func procPos(data *osc.Message) {
