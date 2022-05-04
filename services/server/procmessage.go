@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"resolume-timecode/config"
 	"resolume-timecode/services/clients"
+	"resolume-timecode/util"
 	"strings"
 	"time"
 
@@ -63,12 +64,12 @@ func procDirection(data *osc.Message) {
 
 func procName(data *osc.Message) {
 	clipName = data.Arguments[0].(string)
-	clients.Publish(osc.NewMessage("/name", clipName))
+	clients.Publish(&util.Message{ClipName: clipName})
 }
 
 func procDuration(data *osc.Message) {
 	clipLength = (data.Arguments[0].(float32) * 604800) + 0.001
-	clients.Publish(osc.NewMessage("/duration", clipLength))
+	clients.Publish(&util.Message{ClipLength: fmt.Sprintf("%.3fs", clipLength)})
 }
 
 func procPos(data *osc.Message) {
@@ -99,9 +100,15 @@ func procPos(data *osc.Message) {
 
 	timeActual := time.UnixMilli(int64(t)).UTC()
 
-	timeLeft = fmt.Sprintf("-%02d:%02d:%02d.%03d", timeActual.Hour(), timeActual.Minute(), timeActual.Second(), timeActual.Nanosecond()/1000000)
-	clients.Publish(osc.NewMessage("/time", timeLeft, fmt.Sprintf("%.3fs", clipLength)))
-	clients.Send()
+	clients.Publish(&util.Message{fmt.Sprintf("%02d", timeActual.Hour()),
+		fmt.Sprintf("%02d", timeActual.Minute()),
+		fmt.Sprintf("%02d", timeActual.Second()),
+		fmt.Sprintf("%03d", timeActual.Nanosecond()/1000000),
+		fmt.Sprintf("%.3fs", clipLength),
+		clipName,
+		config.GetString(config.ClientMessage),
+		config.GetBool(config.ClipInvert),
+	})
 
 	//fmt.Println(message, clipLength, samples, pos, currentPosInterval, currentTimeInterval, currentEstSize, posInterval, timeInterval, average(estSizeBuffer))
 

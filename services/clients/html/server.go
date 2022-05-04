@@ -9,6 +9,7 @@ import (
 	"nhooyr.io/websocket"
 	"resolume-timecode/config"
 	"resolume-timecode/services/clients"
+	"resolume-timecode/util"
 )
 
 var (
@@ -58,6 +59,16 @@ func (s *Server) stop() {
 }
 
 func New() *Server {
+	clients.Register("html", func(m *util.Message) []byte {
+		//b, _ := gojay.Marshal(m)
+		//return b
+		b, _ := osc.NewBundle(osc.NewMessage("/time", m.Hour+":"+m.Minute+":"+m.Second+"."+m.MS, m.ClipLength),
+			osc.NewMessage("/name", m.ClipName),
+			osc.NewMessage("/tminus", !m.Invert),
+			osc.NewMessage("/message", m.Message)).MarshalBinary()
+		return b
+	})
+
 	m := http.NewServeMux()
 	m.HandleFunc("/", websocketStart)
 	//m.HandleFunc("/", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
@@ -82,19 +93,8 @@ func websocketStart(w http.ResponseWriter, r *http.Request) {
 
 	ctx := c.CloseRead(context.Background())
 
-	//m, _ := osc.NewMessage("/open").MarshalBinary()
-	//if c.Write(ctx, websocket.MessageBinary, m) != nil {
-	//	return
-	//}
-
-	b, _ := osc.NewBundle(osc.NewMessage("/message", config.GetString(config.ClientMessage))).MarshalBinary()
-	//b, _ := osc.NewBundle(osc.NewMessage("/message", config.GetString(config.ClientMessage)), osc.NewMessage("/name", server.clipName), osc.NewMessage("/tminus", !clipInvert)).MarshalBinary()
-	if c.Write(ctx, websocket.MessageBinary, b) != nil {
-		return
-	}
-
-	l := clients.Register(r.RemoteAddr)
-	defer clients.Close(r.RemoteAddr)
+	l := clients.Listen("html/" + r.RemoteAddr)
+	defer clients.Close("html/" + r.RemoteAddr)
 
 	for {
 		select {

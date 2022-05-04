@@ -1,21 +1,26 @@
 package util
 
 import (
-	"github.com/chabad360/go-osc/osc"
+	"strings"
 	"sync"
 )
 
 type Distributor struct {
-	l  map[string]chan []byte
-	m  sync.RWMutex
-	b  *osc.Bundle
-	bM sync.Mutex
+	l map[string]chan []byte
+	m sync.RWMutex
+
+	e map[string]func(*Message) []byte
 }
 
 func NewDistributor() *Distributor {
 	return &Distributor{
 		l: make(map[string]chan []byte),
+		e: make(map[string]func(*Message) []byte),
 	}
+}
+
+func (d *Distributor) Register(name string, f func(*Message) []byte) {
+	d.e[name] = f
 }
 
 func (d *Distributor) Listen(key string) <-chan []byte {
@@ -42,49 +47,19 @@ func (d *Distributor) Close(key string) {
 	d.m.Unlock()
 }
 
-func (d *Distributor) Publish(m *osc.Message) {
-	d.bM.Lock()
-
-	if d.b == nil {
-		d.b = &osc.Bundle{Timetag: osc.NewImmediateTimetag()}
+func (d *Distributor) Publish(m *Message) {
+	e := make(map[string][]byte)
+	for k, v := range d.e {
+		e[k] = v(m)
 	}
-
-	d.b.Elements = append(d.b.Elements, m)
-
-	d.bM.Unlock()
+	d.publish(e)
 }
 
-func (d *Distributor) PublishMultipleAndSend(m ...osc.Packet) {
-	d.bM.Lock()
-
-	if d.b == nil {
-		d.b = &osc.Bundle{Timetag: osc.NewImmediateTimetag()}
-	}
-
-	d.b.Elements = m
-	d.Send()
-
-	d.bM.Unlock()
-}
-
-func (d *Distributor) Send() {
-	d.bM.Lock()
-
-	b, err := d.b.MarshalBinary()
-	if err != nil {
-		panic(err)
-	}
-
-	d.b = nil
-
-	d.publish(b)
-	d.bM.Unlock()
-}
-
-func (d *Distributor) publish(v []byte) {
+func (d *Distributor) publish(e map[string][]byte) {
 	d.m.RLock()
 
-	for _, ch := range d.l {
+	for k, ch := range d.l {
+		v := e[strings.Split(k, "/")[0]]
 		select {
 		case ch <- v:
 		default:

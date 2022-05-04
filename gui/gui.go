@@ -5,25 +5,17 @@ import (
 	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/data/validation"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-	"github.com/chabad360/go-osc/osc"
 	"html/template"
 	"resolume-timecode/config"
 	"resolume-timecode/services"
-	"resolume-timecode/services/clients"
+	"resolume-timecode/services/clients/gui"
 	"resolume-timecode/services/server"
 	"resolume-timecode/util"
 	"runtime"
-)
-
-var (
-	clipLengthBinding = binding.NewString()
-	timeLeftBinding   = binding.NewString()
-	clipNameBinding   = binding.NewString()
 )
 
 func Gui(a fyne.App, logo *fyne.StaticResource) {
@@ -173,21 +165,17 @@ func genClientForm() (*widget.Form, func()) {
 
 	save := func() {
 		config.SetString(config.ClipPath, path.Text)
-
 		config.SetBool(config.ClipInvert, !invertField.Checked)
-		clients.Publish(osc.NewMessage("/tminus", invertField.Checked))
-
 		config.SetString(config.ClientMessage, template.HTMLEscapeString(messageField.Text))
-		clients.Publish(osc.NewMessage("/message", config.GetString(config.ClientMessage)))
 	}
 
 	return form, save
 }
 
 func genStatusBar() (*fyne.Container, func(bool)) {
-	timeLeftLabel := widget.NewLabelWithData(timeLeftBinding)
-	clipLengthLabel := widget.NewLabelWithData(clipLengthBinding)
-	clipNameLabel := widget.NewLabelWithData(clipNameBinding)
+	timeLeftLabel := widget.NewLabelWithData(gui.TimeLeftBinding)
+	clipLengthLabel := widget.NewLabelWithData(gui.ClipLengthBinding)
+	clipNameLabel := widget.NewLabelWithData(gui.ClipNameBinding)
 	clipNameLabel.Wrapping = fyne.TextTruncate
 
 	resetButton := widget.NewButton("Reset Timecode", server.Reset)

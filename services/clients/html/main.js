@@ -62,6 +62,10 @@ function main(){
 
     async function procMsg(data) {
         data = data.args[0];
+        if (message.innerHTML === data) {
+            return;
+        }
+
         message.innerHTML = (data === "") ? "Timecode Monitor" : data;
         if (data === "") {
             return;
