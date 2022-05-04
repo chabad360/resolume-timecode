@@ -161,7 +161,7 @@ func genClientForm() (*widget.Form, func()) {
 	messageField.SetPlaceHolder("Message to send (optional)")
 
 	invertField := widget.NewCheck("", nil)
-	invertField.SetChecked(config.GetBool(config.ClipInvert))
+	invertField.SetChecked(!config.GetBool(config.ClipInvert))
 
 	form := &widget.Form{
 		Items: []*widget.FormItem{
@@ -175,7 +175,7 @@ func genClientForm() (*widget.Form, func()) {
 		config.SetString(config.ClipPath, path.Text)
 
 		config.SetBool(config.ClipInvert, !invertField.Checked)
-		clients.Publish(osc.NewMessage("/tminus", !invertField.Checked))
+		clients.Publish(osc.NewMessage("/tminus", invertField.Checked))
 
 		config.SetString(config.ClientMessage, template.HTMLEscapeString(messageField.Text))
 		clients.Publish(osc.NewMessage("/message", config.GetString(config.ClientMessage)))

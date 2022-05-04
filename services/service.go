@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"resolume-timecode/services/clients/html"
 	"resolume-timecode/services/server"
 	"sync"
 )
@@ -12,7 +13,7 @@ var (
 	cancel context.CancelFunc
 )
 
-func start() {
+func startReg() {
 	wg.Add(1)
 }
 
@@ -22,7 +23,8 @@ func done() {
 
 func Start() error {
 	c, cancel = context.WithCancel(context.Background())
-	server.Start(c, start, done)
+	server.Start(c, startReg, done)
+	html.New().Start(c, startReg, done)
 
 	return nil
 }

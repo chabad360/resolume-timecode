@@ -83,10 +83,9 @@ func Start(c context.Context, start func(), done func()) error {
 	}()
 
 	go func() {
-		select {
-		case <-c.Done():
-			oscServer.Close()
-		}
+		<-c.Done()
+		oscServer.Close()
+		return
 	}()
 
 	return nil

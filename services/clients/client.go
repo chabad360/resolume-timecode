@@ -1,7 +1,6 @@
 package clients
 
 import (
-	"context"
 	"github.com/chabad360/go-osc/osc"
 	"resolume-timecode/util"
 )
@@ -9,12 +8,6 @@ import (
 var (
 	broadcast = util.NewDistributor()
 )
-
-type Client interface {
-	Start(context.Context) error
-	New() error
-	SetAddress(string, string) error
-}
 
 func Register(key string) <-chan []byte {
 	return broadcast.Listen(key)

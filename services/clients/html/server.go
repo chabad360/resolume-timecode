@@ -4,61 +4,69 @@ import (
 	"context"
 	"embed"
 	"github.com/chabad360/go-osc/osc"
+	"net"
 	"net/http"
 	"nhooyr.io/websocket"
-	"sync"
-	"time"
+	"resolume-timecode/config"
+	"resolume-timecode/services/clients"
 )
 
 var (
+	////go:embed images/favicon.png
+
 	//go:embed index.html
 	//go:embed main.js
-	//go:embed images/favicon.png
 	//go:embed osc.min.js
 	//go:embed osc.min.js.map
 	fs embed.FS
-
-	m          = http.NewServeMux()
-	httpServer *http.Server
-	wg         sync.WaitGroup
-	running    bool
-	message    = &osc.Message{Arguments: []interface{}{"?"}}
-	message2   = &osc.Message{Arguments: []interface{}{"?"}}
-	t          = time.Tick(time.Minute)
 )
 
 type Server struct {
-	c context.Context
+	c          context.Context
+	m          *http.ServeMux
+	httpServer *http.Server
 }
 
-func (s *Server) Start(c context.Context) error {
+func (s *Server) Start(c context.Context, start func(), done func()) error {
 	s.c = c
 
-	httpServer = &http.Server{Addr: ":" + httpPort, Handler: m}
+	s.httpServer = &http.Server{Addr: ":" + config.GetString(config.HTTPPort), Handler: s.m}
+	s.httpServer.BaseContext = func(_ net.Listener) context.Context {
+		return s.c
+	}
 
-	wg.Add(1)
 	go func() {
-		defer wg.Done()
-		httpServer.ListenAndServe()
+		start()
+		defer done()
+		s.httpServer.ListenAndServe()
 	}()
 
+	go func() {
+		<-c.Done()
+		s.stop()
+		return
+	}()
+
+	return nil
 }
 
-func stop() {
-	err := httpServer.Shutdown(ctx)
+func (s *Server) stop() {
+	err := s.httpServer.Shutdown(context.Background())
 	if err != nil {
-		httpServer.Close()
+		s.httpServer.Close()
 	}
 }
 
-func server() {
+func New() *Server {
+	m := http.NewServeMux()
 	m.HandleFunc("/", websocketStart)
 	//m.HandleFunc("/", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
 	m.HandleFunc("/main.js", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
 	m.HandleFunc("/osc.min.js", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
 	m.HandleFunc("/osc.min.js.map", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
-	m.HandleFunc("/images/favicon.png", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
+	//m.HandleFunc("/images/favicon.png", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
 
+	return &Server{m: m}
 }
 
 func websocketStart(w http.ResponseWriter, r *http.Request) {
@@ -79,13 +87,14 @@ func websocketStart(w http.ResponseWriter, r *http.Request) {
 	//	return
 	//}
 
-	b, _ := osc.NewBundle(osc.NewMessage("/message", clientMessage), osc.NewMessage("/name", server.clipName), osc.NewMessage("/tminus", !clipInvert)).MarshalBinary()
+	b, _ := osc.NewBundle(osc.NewMessage("/message", config.GetString(config.ClientMessage))).MarshalBinary()
+	//b, _ := osc.NewBundle(osc.NewMessage("/message", config.GetString(config.ClientMessage)), osc.NewMessage("/name", server.clipName), osc.NewMessage("/tminus", !clipInvert)).MarshalBinary()
 	if c.Write(ctx, websocket.MessageBinary, b) != nil {
 		return
 	}
 
-	l := broadcast.Listen(r.RemoteAddr)
-	defer broadcast.Close(r.RemoteAddr)
+	l := clients.Register(r.RemoteAddr)
+	defer clients.Close(r.RemoteAddr)
 
 	for {
 		select {
