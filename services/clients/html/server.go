@@ -43,7 +43,6 @@ func (s *Server) Start(c context.Context, start func(), done func()) error {
 	go func() {
 		<-c.Done()
 		s.stop()
-		return
 	}()
 
 	return nil

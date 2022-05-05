@@ -10,11 +10,11 @@ import (
 	"resolume-timecode/util"
 )
 
-type OSCClient struct {
+type Client struct {
 	conn net.Conn
 }
 
-func New() (*OSCClient, error) {
+func New() (*Client, error) {
 	clients.Register("osc", func(m *util.Message) []byte {
 		b, _ := osc.NewBundle(
 			osc.NewMessage("/hour", m.Hour),
@@ -34,10 +34,10 @@ func New() (*OSCClient, error) {
 		return nil, err
 	}
 
-	return &OSCClient{conn}, nil
+	return &Client{conn}, nil
 }
 
-func (c *OSCClient) Start(ctx context.Context, start func(), done func()) error {
+func (c *Client) Start(ctx context.Context, start func(), done func()) error {
 	if c.conn == nil {
 		return errors.New("OSC client not initialized")
 	}

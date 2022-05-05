@@ -15,8 +15,6 @@ var (
 	clipName         = ""
 	directionForward = true
 
-	timeLeft string
-
 	clipLength float32
 	posPrev    float32
 
@@ -100,14 +98,14 @@ func procPos(data *osc.Message) {
 
 	timeActual := time.UnixMilli(int64(t)).UTC()
 
-	clients.Publish(&util.Message{fmt.Sprintf("%02d", timeActual.Hour()),
-		fmt.Sprintf("%02d", timeActual.Minute()),
-		fmt.Sprintf("%02d", timeActual.Second()),
-		fmt.Sprintf("%03d", timeActual.Nanosecond()/1000000),
-		fmt.Sprintf("%.3fs", clipLength),
-		clipName,
-		config.GetString(config.ClientMessage),
-		config.GetBool(config.ClipInvert),
+	clients.Publish(&util.Message{Hour: fmt.Sprintf("%02d", timeActual.Hour()),
+		Minute:     fmt.Sprintf("%02d", timeActual.Minute()),
+		Second:     fmt.Sprintf("%02d", timeActual.Second()),
+		MS:         fmt.Sprintf("%03d", timeActual.Nanosecond()/1000000),
+		ClipLength: fmt.Sprintf("%.3fs", clipLength),
+		ClipName:   clipName,
+		Message:    config.GetString(config.ClientMessage),
+		Invert:     config.GetBool(config.ClipInvert),
 	})
 
 	//fmt.Println(message, clipLength, samples, pos, currentPosInterval, currentTimeInterval, currentEstSize, posInterval, timeInterval, average(estSizeBuffer))

@@ -23,7 +23,6 @@ func Start(c context.Context, start func(), done func()) error {
 	go func() {
 		<-c.Done()
 		oscServer.Close()
-		return
 	}()
 
 	return nil
