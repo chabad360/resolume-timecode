@@ -15,8 +15,6 @@ import (
 var (
 	//go:embed index.html
 	//go:embed main.js
-	//go:embed osc.min.js
-	//go:embed osc.min.js.map
 	fs embed.FS
 
 	Icon []byte
@@ -65,11 +63,9 @@ func New() *Server {
 	})
 
 	m := http.NewServeMux()
-	m.HandleFunc("/", websocketStart)
-	//m.HandleFunc("/", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
+	m.HandleFunc("/", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
+	m.HandleFunc("/ws", websocketStart)
 	m.HandleFunc("/main.js", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
-	m.HandleFunc("/osc.min.js", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
-	m.HandleFunc("/osc.min.js.map", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
 	m.HandleFunc("/images/favicon.png", func(writer http.ResponseWriter, request *http.Request) {
 		writer.Header().Set("Content-Type", "image/png")
 		writer.Write(Icon)
@@ -79,10 +75,6 @@ func New() *Server {
 }
 
 func websocketStart(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("Upgrade") == "" {
-		http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP(w, r)
-		return
-	}
 	c, err := websocket.Accept(w, r, nil)
 	if err != nil {
 		return
