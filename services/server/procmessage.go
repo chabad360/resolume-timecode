@@ -106,6 +106,7 @@ func procPos(data *osc.Message) {
 		ClipName:   clipName,
 		Message:    config.GetString(config.ClientMessage),
 		Invert:     config.GetBool(config.ClipInvert),
+		AlertTime:  config.GetInt(config.AlertTime),
 	})
 
 	//fmt.Println(message, clipLength, samples, pos, currentPosInterval, currentTimeInterval, currentEstSize, posInterval, timeInterval, average(estSizeBuffer))

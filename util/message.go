@@ -12,6 +12,7 @@ type Message struct {
 	ClipName   string
 	Message    string
 	Invert     bool
+	AlertTime  int
 }
 
 func (m *Message) MarshalJSONObject(enc *gojay.Encoder) {
@@ -23,6 +24,7 @@ func (m *Message) MarshalJSONObject(enc *gojay.Encoder) {
 	enc.StringKey("clipname", m.ClipName)
 	enc.StringKey("message", m.Message)
 	enc.BoolKey("invert", m.Invert)
+	enc.IntKey("alerttime", m.AlertTime)
 }
 
 func (m *Message) IsNil() bool {

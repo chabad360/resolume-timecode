@@ -19,10 +19,13 @@ const (
 	EnableOSCClient = "enableOSCClient"
 	OSCClientAddr   = "OSCClientAddr"
 	OSCClientPort   = "OSCClientPort"
+
+	AlertTime = "alertTime"
 )
 
 var (
 	StringConfig = make(map[string]string)
+	IntConfig    = make(map[string]int)
 	BoolConfig   = make(map[string]bool)
 
 	DefaultStringConfig = map[string]string{
@@ -34,6 +37,9 @@ var (
 		ClientMessage: "",
 		OSCClientAddr: "",
 		OSCClientPort: "",
+	}
+	DefaultIntConfig = map[string]int{
+		AlertTime: 10,
 	}
 	DefaultBoolConfig = map[string]bool{
 		ClipInvert:       false,
@@ -58,6 +64,18 @@ func GetString(key string) string {
 	return StringConfig[key]
 }
 
+func SetInt(key string, value int) {
+	m.Lock()
+	defer m.Unlock()
+	IntConfig[key] = value
+}
+
+func GetInt(key string) int {
+	m.RLock()
+	defer m.RUnlock()
+	return IntConfig[key]
+}
+
 func SetBool(key string, value bool) {
 	m.Lock()
 	defer m.Unlock()
@@ -76,6 +94,9 @@ func StoreValues() {
 	for key, value := range StringConfig {
 		a.Preferences().SetString(key, value)
 	}
+	for key, value := range IntConfig {
+		a.Preferences().SetInt(key, value)
+	}
 	for key, value := range BoolConfig {
 		a.Preferences().SetBool(key, value)
 	}
@@ -86,6 +107,9 @@ func loadValues() {
 	defer m.Unlock()
 	for key, value := range DefaultStringConfig {
 		StringConfig[key] = a.Preferences().StringWithFallback(key, value)
+	}
+	for key, value := range DefaultIntConfig {
+		IntConfig[key] = a.Preferences().IntWithFallback(key, value)
 	}
 	for key, value := range DefaultBoolConfig {
 		BoolConfig[key] = a.Preferences().BoolWithFallback(key, value)

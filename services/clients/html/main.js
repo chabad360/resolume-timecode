@@ -63,7 +63,7 @@ socket.onmessage = (event) => {
     timecodeSeconds.innerHTML = data.second;
     timecodeMS.innerHTML = data.ms;
 
-    if (parseInt(data.second) <= 10 && parseInt(data.hour) < 1 && parseInt(data.minute) < 1) {
+    if (parseInt(data.second) <= data.alerttime && parseInt(data.hour) < 1 && parseInt(data.minute) < 1) {
         table.style.color = "#ff4545";
         tableBorder.style.borderColor = "#ff4545";
     } else {

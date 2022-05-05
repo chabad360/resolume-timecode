@@ -186,11 +186,24 @@ func genClientForm() (*widget.Form, func()) {
 	invertField := widget.NewCheck("", nil)
 	invertField.SetChecked(!config.GetBool(config.ClipInvert))
 
+	alertTimeTextField := widget.NewEntry()
+	alertTimeTextField.Disable()
+	alertTimeTextField.SetText(fmt.Sprintf("%d", config.GetInt(config.AlertTime)))
+
+	alertTimeField := widget.NewSlider(0, 20)
+	alertTimeField.SetValue(float64(config.GetInt(config.AlertTime)))
+	alertTimeField.Step = 1
+	alertTimeField.OnChanged = func(v float64) {
+		alertTimeTextField.SetText(fmt.Sprintf("%d", int(v)))
+	}
+
 	form := &widget.Form{
 		Items: []*widget.FormItem{
 			{Text: "Path", Widget: path, HintText: "OSC Path for clip to listen to"},
 			{Text: "Message to client", Widget: messageField, HintText: "A message to send to all clients"},
 			{Text: "Use T-", Widget: invertField, HintText: "Use T- instead of T+"},
+			{Text: "Alert Time", Widget: alertTimeTextField},
+			{Widget: alertTimeField, HintText: "Time in seconds before the end of a video to alert the client"},
 		},
 	}
 
@@ -198,6 +211,7 @@ func genClientForm() (*widget.Form, func()) {
 		config.SetString(config.ClipPath, path.Text)
 		config.SetBool(config.ClipInvert, !invertField.Checked)
 		config.SetString(config.ClientMessage, template.HTMLEscapeString(messageField.Text))
+		config.SetInt(config.AlertTime, int(alertTimeField.Value))
 	}
 
 	return form, save
