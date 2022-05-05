@@ -9,10 +9,16 @@ const (
 	OSCOutPort    = "OSCOutPort"
 	OSCPort       = "OSCPort"
 	OSCAddr       = "OSCAddr"
-	HTTPPort      = "httpPort"
 	ClipPath      = "clipPath"
 	ClipInvert    = "clipInvert"
 	ClientMessage = "message"
+
+	EnableHttpClient = "enableHttpClient"
+	HTTPPort         = "httpPort"
+
+	EnableOSCClient = "enableOSCClient"
+	OSCClientAddr   = "OSCClientAddr"
+	OSCClientPort   = "OSCClientPort"
 )
 
 var (
@@ -27,10 +33,14 @@ var (
 		HTTPPort:      "8080",
 		ClipPath:      "",
 		ClientMessage: "",
+		OSCClientAddr: "",
+		OSCClientPort: "",
 	}
 	DefaultIntConfig  = map[string]int{}
 	DefaultBoolConfig = map[string]bool{
-		ClipInvert: false,
+		ClipInvert:       false,
+		EnableOSCClient:  false,
+		EnableHttpClient: true,
 	}
 
 	m = sync.RWMutex{}

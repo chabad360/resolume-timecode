@@ -13,6 +13,8 @@ import (
 	"resolume-timecode/config"
 	"resolume-timecode/services"
 	"resolume-timecode/services/clients/gui"
+	"resolume-timecode/services/clients/html"
+	"resolume-timecode/services/clients/osc"
 	"resolume-timecode/services/server"
 	"resolume-timecode/util"
 	"runtime"
@@ -26,7 +28,7 @@ func Gui(a fyne.App, logo *fyne.StaticResource) {
 	infoLabel.Wrapping = fyne.TextWrapWord
 
 	serverForm, updateServerForm, enableServerForm := genServerForm()
-	clientForm, updateClientForm := genClientForm()
+	clientForm, updateClientForm, enableClientForm := genClientForm()
 	statusBar, enableReset := genStatusBar()
 
 	form := &widget.Form{
@@ -45,6 +47,8 @@ func Gui(a fyne.App, logo *fyne.StaticResource) {
 	form.OnSubmit = func() {
 		updateClientForm()
 		updateServerForm()
+
+		config.StoreValues()
 
 		infoLabel.ParseMarkdown("Starting Server")
 
@@ -65,6 +69,7 @@ func Gui(a fyne.App, logo *fyne.StaticResource) {
 		form.SubmitText = "Update Settings"
 
 		enableServerForm(false)
+		enableClientForm(false)
 		enableReset(true)
 
 		form.OnCancel = func() {
@@ -77,6 +82,7 @@ func Gui(a fyne.App, logo *fyne.StaticResource) {
 			form.SubmitText = "Start Server"
 
 			enableServerForm(true)
+			enableClientForm(true)
 
 			form.OnCancel = nil
 
@@ -106,16 +112,11 @@ func genServerForm() (*widget.Form, func(), func(bool)) {
 	oscAddr.SetText(config.GetString(config.OSCAddr))
 	oscAddr.Validator = validation.NewRegexp(`^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$`, "not a valid IP address")
 
-	httpPortField := widget.NewEntry()
-	httpPortField.SetText(config.GetString(config.HTTPPort))
-	httpPortField.Validator = validation.NewRegexp(`^[0-9]+$`, "not a valid port")
-
 	form := &widget.Form{
 		Items: []*widget.FormItem{
 			{Text: "OSC Input Port", Widget: oscInput, HintText: "OSC Input port (usually 7000)"},
 			{Text: "OSC Output Port", Widget: oscOutput, HintText: "OSC Output port (usually 7001) Note: If you have multiple services using Resolume OSC make use the correct broadcast address."},
 			{Text: "OSC Host Address", Widget: oscAddr, HintText: "IP address of device that's running Resolume (make sure to open the OSC input port in your firewall)"},
-			{Text: "HTTP Server Port", Widget: httpPortField, HintText: "The port to run the browser interface on"},
 		},
 	}
 
@@ -123,7 +124,6 @@ func genServerForm() (*widget.Form, func(), func(bool)) {
 		config.SetString(config.OSCOutPort, oscOutput.Text)
 		config.SetString(config.OSCPort, oscInput.Text)
 		config.SetString(config.OSCAddr, oscAddr.Text)
-		config.SetString(config.HTTPPort, httpPortField.Text)
 	}
 
 	enable := func(enable bool) {
@@ -131,19 +131,17 @@ func genServerForm() (*widget.Form, func(), func(bool)) {
 			oscOutput.Enable()
 			oscInput.Enable()
 			oscAddr.Enable()
-			httpPortField.Enable()
 		} else {
 			oscOutput.Disable()
 			oscInput.Disable()
 			oscAddr.Disable()
-			httpPortField.Disable()
 		}
 	}
 
 	return form, save, enable
 }
 
-func genClientForm() (*widget.Form, func()) {
+func genClientForm() (*widget.Form, func(), func(bool)) {
 	path := widget.NewSelectEntry([]string{"", "/composition/selectedclip", "/composition/layers/1/clips/1", "/composition/selectedlayer", "/composition/layers/1"})
 	path.SetText(config.GetString(config.ClipPath))
 	path.SetPlaceHolder("Path to clip (/composition/...)")
@@ -163,13 +161,26 @@ func genClientForm() (*widget.Form, func()) {
 		},
 	}
 
+	htmlForm, htmlSave, htmlEnable := html.GenHtmlClientGui()
+	oscForm, oscSave, oscEnable := osc.GenOSCClientGui()
+
+	form.Items = append(form.Items, htmlForm...)
+	form.Items = append(form.Items, oscForm...)
+
 	save := func() {
 		config.SetString(config.ClipPath, path.Text)
 		config.SetBool(config.ClipInvert, !invertField.Checked)
 		config.SetString(config.ClientMessage, template.HTMLEscapeString(messageField.Text))
+		htmlSave()
+		oscSave()
 	}
 
-	return form, save
+	enable := func(b bool) {
+		htmlEnable(b)
+		oscEnable(b)
+	}
+
+	return form, save, enable
 }
 
 func genStatusBar() (*fyne.Container, func(bool)) {
