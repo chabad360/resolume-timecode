@@ -3,7 +3,7 @@ package html
 import (
 	"context"
 	"embed"
-	"github.com/chabad360/go-osc/osc"
+	"github.com/francoispqt/gojay"
 	"net"
 	"net/http"
 	"nhooyr.io/websocket"
@@ -13,8 +13,6 @@ import (
 )
 
 var (
-	////go:embed images/favicon.png
-
 	//go:embed index.html
 	//go:embed main.js
 	//go:embed osc.min.js
@@ -60,12 +58,7 @@ func (s *Server) stop() {
 
 func New() *Server {
 	clients.Register("html", func(m *util.Message) []byte {
-		//b, _ := gojay.Marshal(m)
-		//return b
-		b, _ := osc.NewBundle(osc.NewMessage("/time", m.Hour+":"+m.Minute+":"+m.Second+"."+m.MS, m.ClipLength),
-			osc.NewMessage("/name", m.ClipName),
-			osc.NewMessage("/tminus", !m.Invert),
-			osc.NewMessage("/message", m.Message)).MarshalBinary()
+		b, _ := gojay.Marshal(m)
 		return b
 	})
 
@@ -102,7 +95,7 @@ func websocketStart(w http.ResponseWriter, r *http.Request) {
 			c.Close(websocket.StatusNormalClosure, "")
 			return
 		case m := <-l:
-			if c.Write(ctx, websocket.MessageBinary, m) != nil {
+			if c.Write(ctx, websocket.MessageText, m) != nil {
 				//log.Println(err)
 				return
 			}

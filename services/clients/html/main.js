@@ -1,21 +1,7 @@
-// import OSC from "./osc.min.js";
-
-function main(){
+function main() {
     "use strict";
 
-    const plugin = new OSC.WebsocketClientPlugin({ host: location.hostname, port: location.port });
-    const osc = new OSC({ plugin: plugin });
-
-    osc.on('open', () => {statusLabel.innerHTML = "Server Running";});
-    osc.on('/name', (message) => procName(message));
-    osc.on('/message', (message) => procMsg(message));
-    osc.on('/time', (message) => procTime(message));
-    osc.on('/refresh', () => location.reload());
-    osc.on('/connect', () => reset());
-    osc.on('/stop', () => plugin.close());
-    osc.on('/tminus', (message) => procTminus(message));
-    osc.on('close', () => close());
-
+    const socket = new WebSocket(`ws://${location.host}`);
     const timecodeHours = document.getElementById("timecode-hours");
     const timecodeMinutes = document.getElementById("timecode-minutes");
     const timecodeSeconds = document.getElementById("timecode-seconds");
@@ -28,8 +14,7 @@ function main(){
     const statusLabel = document.getElementById("status");
     const message = document.getElementById("msg");
 
-    reset();
-    osc.open();
+    close();
 
     function close() {
         statusLabel.innerHTML = "Server Stopped";
@@ -44,24 +29,7 @@ function main(){
         tableBorder.style.borderColor = "#ff4545";
     }
 
-    function procName(data) {
-        timecodeClipName.innerHTML = data.args[0];
-    }
-
-    function procTminus(data) {
-        data.args[0] === true ? timecodeMinus[0].innerHTML = "-" : timecodeMinus[0].innerHTML = '+'
-    }
-
-    function reset() {
-        timecodeHours.innerHTML = "00";
-        timecodeMinutes.innerHTML = "00";
-        timecodeSeconds.innerHTML = "00";
-        timecodeMS.innerHTML = "000";
-        clipLength.innerHTML = "0.000s";
-    }
-
     async function procMsg(data) {
-        data = data.args[0];
         if (message.innerHTML === data) {
             return;
         }
@@ -78,23 +46,38 @@ function main(){
         }
     }
 
-    function procTime(data) {
-        clipLength.innerHTML = data.args[1];
 
-        data = data.args[0].split(":");
-        timecodeHours.innerHTML = data[0].substring(1);
-        timecodeMinutes.innerHTML = data[1];
-        timecodeSeconds.innerHTML = data[2].split(".")[0];
-        timecodeMS.innerHTML = data[2].split(".")[1];
+    socket.onopen = () => {
+        statusLabel.innerHTML = "Server running";
+    };
 
-        if (parseInt(data[2]) <= 10 && parseInt(data[1]) < 1 && parseInt(data[0].substring(1)) < 1) {
+    socket.onmessage = (event) => {
+        let data = event.data.toString();
+        data = JSON.parse(data);
+
+        clipLength.innerHTML = data.cliplength;
+        data.invert === false ? timecodeMinus[0].innerHTML = "-" : timecodeMinus[0].innerHTML = "+";
+        timecodeClipName.innerHTML = data.clipname;
+
+        timecodeHours.innerHTML = data.hour;
+        timecodeMinutes.innerHTML = data.minute;
+        timecodeSeconds.innerHTML = data.second;
+        timecodeMS.innerHTML = data.ms;
+
+        if (parseInt(data.second) <= 10 && parseInt(data.hour) < 1 && parseInt(data.minute) < 1) {
             table.style.color = "#ff4545";
             tableBorder.style.borderColor = "#ff4545";
         } else {
             table.style.color = "#45ff45";
             tableBorder.style.borderColor = "#4b5457";
         }
-    }
+
+        procMsg(data.message);
+    };
+
+    socket.onclose = () => {
+        close();
+    };
 }
 
 main();

@@ -19,8 +19,8 @@ func (m *Message) MarshalJSONObject(enc *gojay.Encoder) {
 	enc.StringKey("minute", m.Minute)
 	enc.StringKey("second", m.Second)
 	enc.StringKey("ms", m.MS)
-	enc.StringKey("clip_length", m.ClipLength)
-	enc.StringKey("clip_name", m.ClipName)
+	enc.StringKey("cliplength", m.ClipLength)
+	enc.StringKey("clipname", m.ClipName)
 	enc.StringKey("message", m.Message)
 	enc.BoolKey("invert", m.Invert)
 }
