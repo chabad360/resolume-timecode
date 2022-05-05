@@ -27,11 +27,11 @@ func done() {
 }
 
 func Start() error {
-	c, cancel = context.WithCancel(context.Background())
-
 	if running {
 		return nil
 	}
+
+	c, cancel = context.WithCancel(context.Background())
 
 	server.Start(c, startReg, done)
 
