@@ -8,9 +8,6 @@ require (
 	nhooyr.io/websocket v1.8.7
 )
 
-//replace github.com/chabad360/go-osc => ../go-osc
-replace fyne.io/fyne/v2 => ../fyne
-
 require (
 	fyne.io/systray v1.9.1-0.20220318224641-d5779bfb17d1 // indirect
 	github.com/Kodeworks/golang-image-ico v0.0.0-20141118225523-73f0f4cfade9 // indirect
