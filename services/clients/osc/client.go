@@ -2,7 +2,6 @@ package osc
 
 import (
 	"context"
-	"errors"
 	"github.com/chabad360/go-osc/osc"
 	"net"
 	"resolume-timecode/config"
@@ -14,7 +13,7 @@ type Client struct {
 	conn net.Conn
 }
 
-func New() (*Client, error) {
+func New() *Client {
 	clients.Register("osc", func(m *util.Message) []byte {
 		b, _ := osc.NewBundle(
 			osc.NewMessage("/hour", m.Hour),
@@ -29,17 +28,14 @@ func New() (*Client, error) {
 		return b
 	})
 
-	conn, err := net.Dial("udp", config.GetString(config.OSCClientAddr)+":"+config.GetString(config.OSCClientPort))
-	if err != nil {
-		return nil, err
-	}
-
-	return &Client{conn}, nil
+	return &Client{}
 }
 
 func (c *Client) Start(ctx context.Context, start func(), done func()) error {
-	if c.conn == nil {
-		return errors.New("OSC client not initialized")
+	var err error
+	c.conn, err = net.Dial("udp", config.GetString(config.OSCClientAddr)+":"+config.GetString(config.OSCClientPort))
+	if err != nil {
+		return err
 	}
 
 	go func() {

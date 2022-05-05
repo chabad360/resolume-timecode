@@ -24,20 +24,28 @@ type Server struct {
 	c          context.Context
 	m          *http.ServeMux
 	httpServer *http.Server
+	l          net.Listener
 }
 
 func (s *Server) Start(c context.Context, start func(), done func()) error {
 	s.c = c
+	var err error
 
-	s.httpServer = &http.Server{Addr: ":" + config.GetString(config.HTTPPort), Handler: s.m}
+	s.httpServer = &http.Server{Handler: s.m}
 	s.httpServer.BaseContext = func(_ net.Listener) context.Context {
 		return s.c
+	}
+
+	listenConfig := &net.ListenConfig{}
+	s.l, err = listenConfig.Listen(s.c, "tcp", ":"+config.GetString(config.HTTPPort))
+	if err != nil {
+		return err
 	}
 
 	go func() {
 		start()
 		defer done()
-		s.httpServer.ListenAndServe()
+		s.httpServer.Serve(s.l)
 	}()
 
 	go func() {
@@ -80,7 +88,7 @@ func websocketStart(w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.Close(websocket.StatusInternalError, "the sky is falling")
 
-	ctx := c.CloseRead(context.Background())
+	ctx := c.CloseRead(r.Context())
 
 	l := clients.Listen("html/" + r.RemoteAddr)
 	defer clients.Close("html/" + r.RemoteAddr)

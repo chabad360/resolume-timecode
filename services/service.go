@@ -50,12 +50,7 @@ func Start() error {
 	}
 
 	if config.GetBool(config.EnableOSCClient) {
-		oscClient, err := osc.New()
-		if err != nil {
-			Stop()
-			return err
-		}
-		if err = oscClient.Start(c, startReg, done); err != nil {
+		if err := osc.New().Start(c, startReg, done); err != nil {
 			Stop()
 			return err
 		}

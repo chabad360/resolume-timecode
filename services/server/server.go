@@ -12,12 +12,18 @@ var (
 )
 
 func Start(c context.Context, start func(), done func()) error {
-	oscServer = &osc.Server{Addr: ":" + config.GetString(config.OSCOutPort), Handler: handleOSC}
+	oscServer = &osc.Server{Handler: handleOSC}
+
+	listenConfig := &net.ListenConfig{}
+	conn, err := listenConfig.ListenPacket(c, "udp", ":"+config.GetString(config.OSCOutPort))
+	if err != nil {
+		return err
+	}
 
 	go func() {
 		start()
 		defer done()
-		oscServer.ListenAndServe()
+		oscServer.Serve(conn)
 	}()
 
 	go func() {
