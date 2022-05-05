@@ -64,6 +64,7 @@ func Gui(a fyne.App, logo *fyne.StaticResource) {
 		ip, err := util.ExternalIP()
 		if err != nil {
 			dialog.ShowError(err, w)
+			services.Stop()
 			infoLabel.ParseMarkdown("Server Errored")
 			return
 		}
@@ -74,6 +75,8 @@ func Gui(a fyne.App, logo *fyne.StaticResource) {
 		enableServerForm(false)
 		enableConfigForm(false)
 		enableReset(true)
+
+		server.Reset()
 
 		form.OnCancel = func() {
 			infoLabel.ParseMarkdown("Stopping Server")

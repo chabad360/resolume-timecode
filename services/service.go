@@ -28,12 +28,16 @@ func done() {
 
 func Start() error {
 	if running {
+		server.Reset()
 		return nil
 	}
 
 	c, cancel = context.WithCancel(context.Background())
 
-	server.Start(c, startReg, done)
+	if err := server.Start(c, startReg, done); err != nil {
+		Stop()
+		return err
+	}
 
 	gui.Init()
 	gui.Start(c, startReg, done)
