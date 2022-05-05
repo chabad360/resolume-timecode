@@ -28,13 +28,15 @@ func Gui(a fyne.App, logo *fyne.StaticResource) {
 	infoLabel.Wrapping = fyne.TextWrapWord
 
 	serverForm, updateServerForm, enableServerForm := genServerForm()
-	clientForm, updateClientForm, enableClientForm := genClientForm()
+	configForm, updateConfigForm, enableConfigForm := genConfigForm()
+	clientForm, updateClientForm := genClientForm()
 	statusBar, enableReset := genStatusBar()
 
 	form := &widget.Form{
 		Items: []*widget.FormItem{
 			{Widget: NewValidateTabs(
 				container.NewTabItemWithIcon("Client Settings", theme.ConfirmIcon(), clientForm),
+				container.NewTabItemWithIcon("Clients", theme.ConfirmIcon(), configForm),
 				container.NewTabItemWithIcon("Server Settings", theme.ConfirmIcon(), serverForm),
 			),
 			},
@@ -46,6 +48,7 @@ func Gui(a fyne.App, logo *fyne.StaticResource) {
 	form.OnCancel = nil
 	form.OnSubmit = func() {
 		updateClientForm()
+		updateConfigForm()
 		updateServerForm()
 
 		config.StoreValues()
@@ -69,7 +72,7 @@ func Gui(a fyne.App, logo *fyne.StaticResource) {
 		form.SubmitText = "Update Settings"
 
 		enableServerForm(false)
-		enableClientForm(false)
+		enableConfigForm(false)
 		enableReset(true)
 
 		form.OnCancel = func() {
@@ -82,7 +85,7 @@ func Gui(a fyne.App, logo *fyne.StaticResource) {
 			form.SubmitText = "Start Server"
 
 			enableServerForm(true)
-			enableClientForm(true)
+			enableConfigForm(true)
 
 			form.OnCancel = nil
 
@@ -141,7 +144,34 @@ func genServerForm() (*widget.Form, func(), func(bool)) {
 	return form, save, enable
 }
 
-func genClientForm() (*widget.Form, func(), func(bool)) {
+func genConfigForm() (*widget.Form, func(), func(bool)) {
+	form := &widget.Form{
+		Items: []*widget.FormItem{},
+	}
+
+	htmlForm, htmlSave, htmlEnable := html.GenHtmlClientGui()
+	oscForm, oscSave, oscEnable := osc.GenOSCClientGui()
+
+	form.Items = append(form.Items, htmlForm...)
+	form.Items = append(form.Items, oscForm...)
+
+	save := func() {
+		htmlSave()
+		oscSave()
+	}
+
+	enable := func(b bool) {
+		htmlEnable(b)
+		oscEnable(b)
+	}
+
+	enable(false)
+	enable(true)
+
+	return form, save, enable
+}
+
+func genClientForm() (*widget.Form, func()) {
 	path := widget.NewSelectEntry([]string{"", "/composition/selectedclip", "/composition/layers/1/clips/1", "/composition/selectedlayer", "/composition/layers/1"})
 	path.SetText(config.GetString(config.ClipPath))
 	path.SetPlaceHolder("Path to clip (/composition/...)")
@@ -161,26 +191,13 @@ func genClientForm() (*widget.Form, func(), func(bool)) {
 		},
 	}
 
-	htmlForm, htmlSave, htmlEnable := html.GenHtmlClientGui()
-	oscForm, oscSave, oscEnable := osc.GenOSCClientGui()
-
-	form.Items = append(form.Items, htmlForm...)
-	form.Items = append(form.Items, oscForm...)
-
 	save := func() {
 		config.SetString(config.ClipPath, path.Text)
 		config.SetBool(config.ClipInvert, !invertField.Checked)
 		config.SetString(config.ClientMessage, template.HTMLEscapeString(messageField.Text))
-		htmlSave()
-		oscSave()
 	}
 
-	enable := func(b bool) {
-		htmlEnable(b)
-		oscEnable(b)
-	}
-
-	return form, save, enable
+	return form, save
 }
 
 func genStatusBar() (*fyne.Container, func(bool)) {

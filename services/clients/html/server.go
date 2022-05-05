@@ -18,6 +18,8 @@ var (
 	//go:embed osc.min.js
 	//go:embed osc.min.js.map
 	fs embed.FS
+
+	Icon []byte
 )
 
 type Server struct {
@@ -68,7 +70,10 @@ func New() *Server {
 	m.HandleFunc("/main.js", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
 	m.HandleFunc("/osc.min.js", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
 	m.HandleFunc("/osc.min.js.map", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
-	//m.HandleFunc("/images/favicon.png", http.StripPrefix("/", http.FileServer(http.FS(fs))).ServeHTTP)
+	m.HandleFunc("/images/favicon.png", func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Content-Type", "image/png")
+		writer.Write(Icon)
+	})
 
 	return &Server{m: m}
 }

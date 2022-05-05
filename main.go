@@ -6,6 +6,7 @@ import (
 	"fyne.io/fyne/v2/app"
 	"resolume-timecode/config"
 	"resolume-timecode/gui"
+	"resolume-timecode/services/clients/html"
 )
 
 var (
@@ -14,20 +15,8 @@ var (
 	//go:embed images/logo.png
 	logo []byte
 
-	//
-	//	//go:embed services/clients/http/index.html
-	//	//go:embed services/clients/http/main.js
-	//	//go:embed images/favicon.png
-	//	//go:embed services/clients/http/osc.min.js
-	//	//go:embed services/clients/http/osc.min.js.map
-	//	fs embed.FS
-	//
-	//	m          = http.NewServeMux()
-	//	httpServer *http.Server
-	//	oscServer  *osc.Server
-	//	wg         sync.WaitGroup
-	//	running    bool
-	//	t          = time.Tick(time.Minute)
+	//go:embed images/favicon.png
+	favicon []byte
 )
 
 func main() {
@@ -35,6 +24,8 @@ func main() {
 	//defer pr.Stop()
 
 	config.Init(a)
+
+	html.Icon = favicon
 
 	gui.Gui(a, fyne.NewStaticResource("logo", logo))
 }
