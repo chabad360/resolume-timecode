@@ -17,10 +17,6 @@ github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239/go.mod h1:2FmKhYU
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/bradfitz/go-smtpd v0.0.0-20170404230938-deb6d6237625/go.mod h1:HYsPBTaaSFSlLx/70C2HPIMNZpVV8+vt/A+FMnYP11g=
 github.com/buger/jsonparser v0.0.0-20181115193947-bf1c66bbce23/go.mod h1:bbYlZJ7hK1yFx9hf58LP0zeX7UjIGs20ufpu3evjr+s=
-github.com/chabad360/go-osc v0.0.0-20220217020417-1229c4fc60a5 h1:TflojXcP1trvcO79pbZfZGqBYhNnSC9hC4saFFhWBzc=
-github.com/chabad360/go-osc v0.0.0-20220217020417-1229c4fc60a5/go.mod h1:SxhoJ/QyHpv+WPTqoLtIhjKZMIy0x3QQRdwQ6Ug3nk4=
-github.com/chabad360/go-osc v0.0.0-20220505223457-5bab49d28dde h1:tzFyrhEB64jjjvlJ/x66CXroDFcJDFPjJu0ZZ8JmvQA=
-github.com/chabad360/go-osc v0.0.0-20220505223457-5bab49d28dde/go.mod h1:SxhoJ/QyHpv+WPTqoLtIhjKZMIy0x3QQRdwQ6Ug3nk4=
 github.com/chabad360/go-osc v0.0.0-20220505223708-c2e3ef7101f3 h1:gIoPZq2xuNXvp5bp9svXGiIfFzHAnNaFr3CvBvZm+qE=
 github.com/chabad360/go-osc v0.0.0-20220505223708-c2e3ef7101f3/go.mod h1:SxhoJ/QyHpv+WPTqoLtIhjKZMIy0x3QQRdwQ6Ug3nk4=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=

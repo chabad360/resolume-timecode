@@ -7,7 +7,6 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/validation"
 	"fyne.io/fyne/v2/dialog"
-	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"html/template"
 	"resolume-timecode/config"
@@ -35,9 +34,9 @@ func Gui(a fyne.App, logo *fyne.StaticResource) {
 	form := &widget.Form{
 		Items: []*widget.FormItem{
 			{Widget: NewValidateTabs(
-				container.NewTabItemWithIcon("Client Settings", theme.ConfirmIcon(), clientForm),
-				container.NewTabItemWithIcon("Clients", theme.ConfirmIcon(), configForm),
-				container.NewTabItemWithIcon("Server Settings", theme.ConfirmIcon(), serverForm),
+				container.NewTabItem("Client Settings", clientForm),
+				container.NewTabItem("Clients", configForm),
+				container.NewTabItem("Server Settings", serverForm),
 			),
 			},
 		},
@@ -178,7 +177,7 @@ func genClientForm() (*widget.Form, func()) {
 	path := widget.NewSelectEntry([]string{"", "/composition/selectedclip", "/composition/layers/1/clips/1", "/composition/selectedlayer", "/composition/layers/1"})
 	path.SetText(config.GetString(config.ClipPath))
 	path.SetPlaceHolder("Path to clip (/composition/...)")
-	path.Validator = validation.NewRegexp(`^[^\?\,\[\]\{\}\#\s]+$`, "not a valid OSC path")
+	path.Validator = validation.NewRegexp(`^/[^\?\,\[\]\{\}\#\s]+$`, "not a valid OSC path")
 
 	messageField := widget.NewEntry()
 	messageField.SetPlaceHolder("Message to send (optional)")
