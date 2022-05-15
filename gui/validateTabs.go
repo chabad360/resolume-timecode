@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/theme"
@@ -28,7 +29,6 @@ func (v *ValidateTabs) Refresh() {
 			v.AppTabs.Items[k].Icon = theme.ErrorIcon()
 		}
 	}
-
 	v.AppTabs.Refresh()
 }
 
@@ -52,9 +52,9 @@ func (v *ValidateTabs) SetValidationError(err error) {
 
 	if (err == nil && v.err != nil) || (v.err == nil && err != nil) {
 		if err == nil {
-			for _, item := range v.invalid {
+			for k, item := range v.invalid {
 				if item.invalid {
-					err = item.err
+					err = fmt.Errorf("%s: %w", v.Items[k].Text, item.err)
 				}
 			}
 		}

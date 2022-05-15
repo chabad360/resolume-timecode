@@ -28,7 +28,7 @@ func Gui(a fyne.App, logo *fyne.StaticResource) {
 
 	serverForm, updateServerForm, enableServerForm := genServerForm()
 	configForm, updateConfigForm, enableConfigForm := genConfigForm()
-	clientForm, updateClientForm := genClientForm()
+	clientForm, updateClientForm := genClientForm() // TODO: fix disabled state
 	statusBar, enableReset := genStatusBar()
 
 	form := &widget.Form{

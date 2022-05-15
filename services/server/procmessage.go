@@ -20,14 +20,18 @@ var (
 
 	message  = &osc.Message{Arguments: []interface{}{"?"}}
 	message2 = &osc.Message{Arguments: []interface{}{"?"}}
+	message3 = &osc.Message{Arguments: []interface{}{"?"}}
+	message4 = &osc.Message{Arguments: []interface{}{"?"}}
 )
 
 func Reset() {
 	clipPath := config.GetString(config.ClipPath)
 
 	message.Address = clipPath + "/name"
-	message2.Address = clipPath + "/transport/position/behaviour/duration"
-	if _, err := oscServer.WriteTo(osc.NewBundle(message, message2), config.GetString(config.OSCAddr)+":"+config.GetString(config.OSCPort)); err != nil {
+	message2.Address = clipPath + "/duration"
+	message3.Address = clipPath + "/transport/position"
+	message4.Address = clipPath + "/transport/position/behaviour/playdirection"
+	if _, err := oscServer.WriteTo(osc.NewBundle(message, message2, message3, message4), config.GetString(config.OSCAddr)+":"+config.GetString(config.OSCPort)); err != nil {
 		fmt.Println(err)
 	}
 
@@ -36,6 +40,7 @@ func Reset() {
 
 func procMsg(data *osc.Message) {
 	if strings.HasPrefix(data.Address, config.GetString(config.ClipPath)) {
+		//fmt.Println(data.Address, data.Arguments)
 		switch {
 		case strings.HasSuffix(data.Address, "/position"):
 			procPos(data)
@@ -45,7 +50,7 @@ func procMsg(data *osc.Message) {
 			procName(data)
 		case strings.HasSuffix(data.Address, "/duration"):
 			procDuration(data)
-		case strings.HasSuffix(data.Address, "/connect"):
+		case strings.Contains(data.Address, "/connect"):
 			Reset()
 		case strings.Contains(data.Address, "/select"):
 			Reset()
@@ -62,12 +67,12 @@ func procDirection(data *osc.Message) {
 
 func procName(data *osc.Message) {
 	clipName = data.Arguments[0].(string)
-	clients.Publish(&util.Message{ClipName: clipName})
+	//clients.Publish(&util.Message{ClipName: clipName})
 }
 
 func procDuration(data *osc.Message) {
 	clipLength = (data.Arguments[0].(float32) * 604800) + 0.001
-	clients.Publish(&util.Message{ClipLength: fmt.Sprintf("%.3fs", clipLength)})
+	//clients.Publish(&util.Message{ClipLength: fmt.Sprintf("%.3fs", clipLength)})
 }
 
 func procPos(data *osc.Message) {
@@ -77,7 +82,7 @@ func procPos(data *osc.Message) {
 		pos = 1 - pos
 	}
 
-	if posPrev == 0 || posPrev == pos || (pos < posPrev && posPrev > 0.9 && pos < 0.1) {
+	if pos == 0 || posPrev == pos || (pos < posPrev && posPrev > 0.9 && pos < 0.1) {
 		posPrev = pos
 		return
 	}
